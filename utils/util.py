@@ -52,7 +52,7 @@ def prepare_device(n_gpu_use):
     list_ids = list(range(n_gpu_use))
     return device, list_ids
 
-def construct_adj(graph_file, entity2id_file, args):#graph is triple
+def construct_adj(graph_file, entity2id_file, args): #graph is triple
     print('constructing adjacency matrix ...')
     graph_file_fp = open(graph_file, 'r', encoding='utf-8')
     graph = []
@@ -227,7 +227,7 @@ def download_deeprec_resources(azure_container_url, data_path, remote_resource_n
     """
     os.makedirs(data_path, exist_ok=True)
     remote_path = azure_container_url + remote_resource_name
-    maybe_download(remote_path, remote_resource_name, data_path)
+    #maybe_download(remote_path, remote_resource_name, data_path)
     zip_ref = zipfile.ZipFile(os.path.join(data_path, remote_resource_name), "r")
     zip_ref.extractall(data_path)
     zip_ref.close()
@@ -394,23 +394,27 @@ def build_news_features_mind(config):
 
 def construct_adj_mind(config):#graph is triple
     print('constructing adjacency matrix ...')
+    
     graph_file_fp = open(config['data']['knowledge_graph'], 'r', encoding='utf-8')
     graph = []
+    
     for line in graph_file_fp:
+        
         linesplit = line.split('\n')[0].split('\t')
         graph.append([int(linesplit[0])+1, int(linesplit[2])+1, int(linesplit[1])+1])
+    
     kg = {}
     for triple in graph:
-        head = triple[0]
-        relation = triple[1]
-        tail = triple[2]
-        # treat the KG as an undirected graph
-        if head not in kg:
-            kg[head] = []
-        kg[head].append((tail, relation))
-        if tail not in kg:
-            kg[tail] = []
-        kg[tail].append((head, relation))
+      head = triple[0]
+      relation = triple[1]
+      tail = triple[2]
+      # treat the KG as an undirected graph
+      if head not in kg:
+          kg[head] = []
+      kg[head].append((tail, relation))
+      if tail not in kg:
+          kg[tail] = []
+      kg[tail].append((head, relation))
 
     fp_entity2id = open(config['data']['entity_index'], 'r', encoding='utf-8')
     entity_num = int(fp_entity2id.readline().split('\n')[0])+1
@@ -638,7 +642,3 @@ def load_data_mind(config):
         return user_history, entity_embedding, relation_embedding, entity_adj, relation_adj, news_feature, max_entity_freq, max_entity_pos, max_entity_type, pop_train, pop_test
     else:
         print("task error, please check config")
-
-
-
-

@@ -1,0 +1,2 @@
+2023-04-29 13:52:12,682 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: distilbert-base-nli-stsb-mean-tokens
+2023-04-29 13:52:23,993 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device: cuda
