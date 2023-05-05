@@ -1,11 +1,14 @@
 import torch
 import torch.nn as nn
 from .KGAT import KGAT
+import numpy as np
+import sys
 
 
 class News_embedding(nn.Module):
 
-    def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation, entity_num, position_num, type_num):
+    def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation,
+                 entity_num, position_num, type_num):
         super(News_embedding, self).__init__()
         self.config = config
         self.doc_feature_dict = doc_feature_dict
@@ -145,6 +148,8 @@ class News_embedding(nn.Module):
         istitle = self.get_position(news_id)
         type = self.get_type(news_id)
         context_vecs = self.get_context_vector(news_id)
+        # context_vecs = torch.FloatTensor(context_vecs).to(self.device)
+        context_vecs = torch.FloatTensor(np.array(context_vecs)).cuda()
 
         entity_num_embedding = self.get_entity_num_embedding(entity_nums)
         istitle_embedding = self.get_title_embedding(istitle)
@@ -152,9 +157,8 @@ class News_embedding(nn.Module):
         kgat_entity_embeddings = self.kgat(entities)  # batch(news num) * entity num
         news_entity_embedding = kgat_entity_embeddings + entity_num_embedding + istitle_embedding + type_embedding #todo
 
-        aggregate_embedding, topk_index = self.attention_layer(news_entity_embedding, torch.FloatTensor(context_vecs).cuda())
-
-        concat_embedding = torch.cat([aggregate_embedding, torch.FloatTensor(context_vecs).cuda()],
+        aggregate_embedding, topk_index = self.attention_layer(news_entity_embedding, context_vecs)
+        concat_embedding = torch.cat([aggregate_embedding, context_vecs],
                                     len(aggregate_embedding.shape) - 1)
         news_embeddings = self.tanh(self.final_embedding2(self.relu(self.final_embedding1(concat_embedding))))
 

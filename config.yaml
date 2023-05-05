@@ -6,16 +6,16 @@ data_loader:
     num_workers: 1
 
 data:
-  train_news : "./data/train/MINDsmall_train/news.tsv"
-  train_behavior : "./data/train/MINDsmall_train/behaviors.tsv"
-  valid_news : "./data/valid/MINDsmall_dev/news.tsv"
-  valid_behavior : "./data/valid/MINDsmall_dev/behaviors.tsv"
-  knowledge_graph : "./data/kg/wikidata-graph/triple2id.txt"
-  entity_embedding : "./data/kg/wikidata-graph/entity2vecd100.vec"
-  relation_embedding : "./data/kg/wikidata-graph/relation2vecd100.vec"
-  entity_index : "./data/kg/wikidata-graph/entity2id.txt"
-  relation_index : "./data/kg/wikidata-graph/realtion2id.txt"
-
+  train_news : "./data/train/news.tsv"
+  train_behavior : "./data/train/behaviors.tsv"
+  valid_news : "./data/valid/news.tsv"
+  valid_behavior : "./data/valid/behaviors.tsv"
+  knowledge_graph : "./data/kg/kg/triple2id.txt"
+  entity_embedding : "./data/kg/kg/entity2vecd100.vec"
+  relation_embedding : "./data/kg/kg/relation2vecd100.vec"
+  entity_index : "./data/kg/kg/entity2id.txt"
+  relation_index : "./data/kg/kg/realtion2id.txt"
+  sentence_embedding_folder: "./data/sentence_embedding/"
 
 model:
   document_embedding_dim: 768
