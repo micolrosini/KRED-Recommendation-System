@@ -33,7 +33,7 @@ We use [MIND dataset](https://msnews.github.io) in this repo (in these experimen
 Two main options are available to run this project: it can either be executed locally or, alternatively, on a Python Notebook on Google Colab.
 
 To run the code locally it is necessary to clone this repository, possibly using the preferred IDE, and subsequently add the required data. The dataset directory must be structured as follows in order for the code to run properly:
-![](./DataDirectoryStructure.png)  
+![](./DataDirectoryStructure.jpg)  
 (The dataset can be downloaded from [here](https://msnews.github.io/))
 
 Once fulfilled the aforementioned requirements, the project can be run from an IDE or executing the following command:
