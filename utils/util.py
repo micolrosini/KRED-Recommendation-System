@@ -729,6 +729,64 @@ def build_item2item_data(config):
     item2item_test["label"] = label_dev
     return item2item_train, item2item_test
 
+
+def entities_movies(config):
+
+    """
+    Return all the wikidataIDs of each entities of the dataset 'movies recommendation'
+
+    """
+    entities = set()
+    with open(config["data"]["train_movies"]) as train_movies:
+        for entity in train_movies:
+            
+
+            wikidataid, entity_label, entity_type = entity.strip().split(',')  # only need last 2 columns
+            entities.add(wikidataid)
+    """
+    # Add the WikidataId from the valid entities
+    with open(config["data"]["valid_news"]) as valid_news:
+        for line in valid_news:
+            _, _, _, _, _, _, entity_info_title, entity_info_abstract = line.strip().split('\t')
+            for entity in eval(entity_info_title):
+                entities.add(entity["WikidataId"])
+            for entity in eval(entity_info_abstract):
+                entities.add(entity["WikidataId"]) """
+    return entities
+
+
+def entity_to_id_movies(entities):
+    """
+    Return dictionary with entity `WikidataId' as key and entity id(numbers) as value. The entity id is the id of the entity in
+    the file `entity2id.txt`. 
+    """
+    entity2id = {}
+    
+    for entity_id, entity in enumerate(entities):
+        entity2id[entity] = entity_id + 1  # increment the id by 1
+    return entity2id
+
+def relation2id_movies(config):
+
+    """
+    Return a dictionary with the wikidataIDs of each property in the graph of the dataset movies as key and its corresponding id as value 
+
+    """
+    relations = {}
+    # Add the WikidataId from the train entities
+    with open(config["data"]["relation_index"]) as relation_movies:
+        for relation in relation_movies:
+            
+
+            relation_all = relation.split() 
+            wikidataid = relation_all[0]
+            relation_id = relation_all[1]
+            relations[wikidataid] = int(relation_id) +1
+        return relations
+
+
+
+
 def load_data_mind(config,embedding_folder=None):
     entities = entities_news(config)  # get all wikidata IDs of each entities in the title and abstract in the training news data
     entity2id = entity_to_id(config, entities)  # get dict with key entity WikidataId and value id
