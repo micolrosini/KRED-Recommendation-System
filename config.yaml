@@ -14,8 +14,10 @@ data:
   entity_embedding : "./data/kg/kg/entity2vecd100.vec"
   relation_embedding : "./data/kg/kg/relation2vecd100.vec"
   entity_index : "./data/kg/kg/entity2id.txt"
-  relation_index : "./data/kg/kg/realtion2id.txt"
+  relation_index : "./data/kg/kg/relation2id.txt"
   sentence_embedding_folder: "./data/sentence_embedding/"
+  train_movies: "./data/mind_reader_dataset/entity2label_movies.txt"
+  knowledge_graph_movies : "./data/mind_reader_dataset/triple2id_movies.txt"
 
 model:
   document_embedding_dim: 768
