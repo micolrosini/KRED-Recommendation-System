@@ -436,6 +436,9 @@ def build_news_features_mind(config, entity2embedd):
                 news_feature_dict[newsid] = (train_sentences_embedding[i], entity_info_title, entity_info_abstract, vert, subvert)
             else:
                 news_feature_dict[newsid] = (title+" "+abstract, entity_info_title, entity_info_abstract, vert, subvert)
+        
+        
+            
     # Load sentence embeddings from file if present
     with open(config['data']['valid_news'], 'r', encoding='utf-8') as fp_dev_news:
         if embedding_folder is not None:
@@ -470,6 +473,7 @@ def build_news_features_mind(config, entity2embedd):
                 entity_type_index = entity_type_index + 1
             news_entity_feature[item['WikidataId']] =\
                 (len(item['OccurrenceOffsets']), 1, entity_type_dict[item['Type']]) #entity_freq, entity_position, entity_type
+        
         for item in abstract_entity_json:
             if item['WikidataId'] in news_entity_feature:
                 news_entity_feature[item['WikidataId']] =\
@@ -485,18 +489,24 @@ def build_news_features_mind(config, entity2embedd):
                 news_entity_feature_list.append(
                     [entity2embedd[entity], news_entity_feature[entity][0], news_entity_feature[entity][1], news_entity_feature[entity][2]]
                 )
+        
+
         news_entity_feature_list.append([0, 0, 0, 0])
         if len(news_entity_feature_list) > config['model']['news_entity_num']:
             news_entity_feature_list = news_entity_feature_list[:config['model']['news_entity_num']]
         else:
             for i in range(len(news_entity_feature_list), config['model']['news_entity_num']):
                 news_entity_feature_list.append([0, 0, 0, 0])
+        
         news_feature_list_ins = [[],[],[],[],[]]
         for i in range(len(news_entity_feature_list)):
             for j in range(4):
                 news_feature_list_ins[j].append(news_entity_feature_list[i][j])
+        
         news_feature_list_ins[4] = sentence_embedding
+        
         news_features[news] = news_feature_list_ins
+        
     news_features["N0"] = [[],[],[],[],[]]
     for i in range(config['model']['news_entity_num']):
         for j in range(4):
@@ -810,12 +820,14 @@ def load_data_mind(config,embedding_folder=None):
                                                                                    entity2id_not_embedded,
                                                                                    entity_embedding,
                                                                                    entity2embedd)
+    # added now to check a thing remnove asap 
+    news_feature, max_entity_freq, max_entity_pos, max_entity_type =\
+        build_news_features_mind(config, entity2embedd)
     # Add the new entities to the dictionary
     entity2id.update(entity2id_not_embedded)
     # Invert the dictionary
     id2entity = {v: k for k, v in entity2id.items()}
     
-    print(entity2embedd)
     
     # The ids in entity_adj are the original ones, they need to be updated to the new ids given by entity2embedd, in entity adj there are index that are missing since they are not in the training data, with entity to embedd we can have all the numbers from 1 that are connected to an entity
     for i in range(1, len(entity_adj)):
