@@ -18,9 +18,14 @@ data:
   sentence_embedding_folder: "./data/sentence_embedding/"
   train_movies: "./data/mind_reader_dataset/entity2label_movies.txt"
   knowledge_graph_movies : "./data/mind_reader_dataset/triple2id_movies.txt"
+  train_movies_behaviour : "./data/mind_reader_dataset/behaviours_movies.txt"
+  movies_entity_embedding : "./data/mind_reader_dataset/mind_reader_entity_embedding.vec"
+
+  train_movies_linked_entities : "./data/mind_reader_dataset/trainmovieswith_entities.txt"
+  test_movies_linked_entities : "./data/mind_reader_dataset/testmovieswith_entities.txt"
 
 model:
-  document_embedding_dim: 768
+  document_embedding_dim: 100
   embedding_dim: 100
   news_entity_num: 20
   entity_neighbor_num: 20
