@@ -5,7 +5,7 @@ from .News_embedding import News_embedding
 
 class User_modeling(nn.Module):
 
-    def __init__(self, config, user_history_dict, news_embedding_dim, user_embedding_dim, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation, entity_num, position_num, type_num):
+    def __init__(self, config, user_history_dict, news_embedding_dim, user_embedding_dim, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation, entity_num, position_num, type_num, device):
         super(User_modeling, self).__init__()
         self.config = config
         self.user_history_dict = user_history_dict
@@ -14,7 +14,7 @@ class User_modeling(nn.Module):
         self.doc_feature_dict = doc_feature_dict
         self.adj_entity = adj_entity
         self.adj_relation = adj_relation
-        self.news_embedding = News_embedding(config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation, entity_num, position_num, type_num)
+        self.news_embedding = News_embedding(config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation, entity_num, position_num, type_num, device)
 
         self.user_attention_layer1 = nn.Linear(news_embedding_dim, self.config['model']['layer_dim'])
         self.user_attention_layer2 = nn.Linear(self.config['model']['layer_dim'], 1)

@@ -19,7 +19,7 @@ class Softmax_BCELoss(nn.Module):
 
 class KREDModel(nn.Module):
     def __init__(self, config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, adj_entity,
-                 adj_relation, entity_num, position_num, type_num):
+                adj_relation, entity_num, position_num, type_num, device):
         super(KREDModel, self).__init__()
         self.config = config
         self.user_history_dict = user_history_dict
@@ -29,10 +29,11 @@ class KREDModel(nn.Module):
         self.entity_num = entity_num
         self.position_num = position_num
         self.type_num = type_num
+        self.device = device
         self.news_embedding = News_embedding(config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity,
-                                             adj_relation, entity_num, position_num, type_num)
+                                             adj_relation, entity_num, position_num, type_num, self.device)
         self.user_modeling = User_modeling(config, user_history_dict, self.config['model']['embedding_dim'], self.config['model']['embedding_dim'], doc_feature_dict, entity_embedding,
-                                           relation_embedding, adj_entity, adj_relation, entity_num, position_num, type_num)
+                                           relation_embedding, adj_entity, adj_relation, entity_num, position_num, type_num,self.device)
 
         self.relu = nn.ReLU(inplace=True)
         self.sigmoid = nn.Sigmoid()

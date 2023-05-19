@@ -8,13 +8,14 @@ import sys
 class News_embedding(nn.Module):
 
     def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation,
-                 entity_num, position_num, type_num):
+                 entity_num, position_num, type_num, device):
         super(News_embedding, self).__init__()
         self.config = config
         self.doc_feature_dict = doc_feature_dict
         self.adj_entity = adj_entity
         self.adj_relation = adj_relation
-        self.kgat = KGAT(config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation)
+        self.device = device
+        self.kgat = KGAT(config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation,device)
 
         self.entity_num = entity_num
         self.position_num = position_num
@@ -62,7 +63,7 @@ class News_embedding(nn.Module):
         soft_att_value = self.softmax(att_value)
         weighted_entity_embedding = soft_att_value*entity_embeddings
         weighted_entity_embedding_sum = torch.sum(weighted_entity_embedding, dim=-2)
-        topk_weights = torch.topk(soft_att_value, 20, dim=-2)
+        topk_weights = torch.topk(soft_att_value, 16, dim=-2) # changed!!!! remember to change to 20
         if len(soft_att_value.shape) == 3:
             topk_index = topk_weights[1].reshape(topk_weights[1].shape[0],
                                                  topk_weights[1].shape[1] * topk_weights[1].shape[2])
@@ -121,6 +122,9 @@ class News_embedding(nn.Module):
         context_vectors = []
         for news in news_id:
             if type(news) == str:
+                for i,el in enumerate(self.doc_feature_dict[news][4]):
+                    self.doc_feature_dict[news][4][i] =  np.float64(el)
+
                 context_vectors.append(self.doc_feature_dict[news][4])
             else:
                 context_vectors.append([])
@@ -129,16 +133,17 @@ class News_embedding(nn.Module):
         return context_vectors
 
     def get_entity_num_embedding(self, entity_nums):
-        entity_num_embedding = self.entity_num_embeddings(torch.tensor(entity_nums).cuda())
+        entity_num_embedding = self.entity_num_embeddings(torch.tensor(entity_nums).to(self.device))
+      
         return entity_num_embedding
 
     def get_title_embedding(self, istitles):
         #print(istitles)
-        istitle_embedding = self.title_embeddings(torch.tensor(istitles).cuda())
+        istitle_embedding = self.title_embeddings(torch.tensor(istitles).to(self.device))
         return istitle_embedding
 
     def get_type_embedding(self, type):
-        type_embedding = self.type_embeddings(torch.tensor(type).cuda())
+        type_embedding = self.type_embeddings(torch.tensor(type).to(self.device))
         return type_embedding
 
 
@@ -148,8 +153,14 @@ class News_embedding(nn.Module):
         istitle = self.get_position(news_id)
         type = self.get_type(news_id)
         context_vecs = self.get_context_vector(news_id)
+        
         # context_vecs = torch.FloatTensor(context_vecs).to(self.device)
-        context_vecs = torch.FloatTensor(np.array(context_vecs)).cuda()
+        
+        #float_list = [float(element) for element in context_vecs]
+
+       # print('michi guarda qui',context_vecs.size)
+        context_vecs = torch.FloatTensor(np.array(context_vecs)).to(self.device)
+        
 
         entity_num_embedding = self.get_entity_num_embedding(entity_nums)
         istitle_embedding = self.get_title_embedding(istitle)
