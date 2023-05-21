@@ -45,7 +45,7 @@ def multi_task_training(config, data):
     device, deviceids = prepare_device(config['n_gpu'])
 
     model = KREDModel(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
-                      relation_adj, entity_num, position_num, type_num).cuda()
+                      relation_adj, entity_num, position_num, type_num).to(device)()
 
     pretrain_epoch = 0
     while (pretrain_epoch < 5):
@@ -56,7 +56,7 @@ def multi_task_training(config, data):
         model.train()
         for step, batch in enumerate(train_dataloader_vert):
             out = model(batch['item1'], batch['item2'], "vert_classify")[1]
-            loss = criterion(out, torch.tensor(batch['label']).cuda())
+            loss = criterion(out, torch.tensor(batch['label']).to(device)())
             total_loss_vert = total_loss_vert + loss
             optimizer.zero_grad()
             loss.backward()
@@ -67,7 +67,7 @@ def multi_task_training(config, data):
         model.train()
         for step, batch in enumerate(train_dataloader_pop):
             out = model(batch['item1'], batch['item2'], "pop_predict")[3]
-            loss = criterion(out, torch.tensor(batch['label']).cuda())
+            loss = criterion(out, torch.tensor(batch['label']).to(device)())
             total_loss_pop = total_loss_pop + loss
             optimizer.zero_grad()
             loss.backward()
@@ -79,7 +79,7 @@ def multi_task_training(config, data):
         model.train()
         for step, batch in enumerate(train_dataloader_i2i):
             out = model(batch['item1'], batch['item2'], "item2item")[4]
-            loss = criterion(out, torch.stack(batch['label']).float().cuda())
+            loss = criterion(out, torch.stack(batch['label']).float().to(device)())
             total_loss_i2i = total_loss_i2i + loss
             optimizer.zero_grad()
             loss.backward()
@@ -92,7 +92,7 @@ def multi_task_training(config, data):
         for step, batch in enumerate(train_dataloader_u2i):
             batch = real_batch(batch)
             out = model(batch['item1'], batch['item2'], "user2item")[0]
-            loss = criterion(out, torch.tensor(batch['label']).cuda())
+            loss = criterion(out, torch.tensor(batch['label']).to(device)())
             total_loss_u2i = total_loss_u2i + loss
             optimizer.zero_grad()
             loss.backward()
@@ -157,10 +157,10 @@ def single_task_training(config, data):
     else:
         print("Error: task name error.")
 
-    device, deviceids = prepare_device(config['n_gpu'])
-
+    #device, deviceids = prepare_device(config['n_gpu'])
+    device = 'mps'
     model = KREDModel(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
-                      relation_adj, entity_num, position_num, type_num).cuda()
+                      relation_adj, entity_num, position_num, type_num, device).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=config['optimizer']['lr'], weight_decay=0)
 
