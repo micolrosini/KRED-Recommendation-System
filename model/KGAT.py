@@ -96,11 +96,10 @@ class KGAT(BaseModel):
         entity_embedding_lookup = nn.Embedding.from_pretrained(self.entity_embedding.to(self.device))
         relation_embedding_lookup = nn.Embedding.from_pretrained(self.relation_embedding.to(self.device))
         
-        neighbor_entity_embedding = entity_embedding_lookup(torch.tensor(neighbor_entities).to(self.device))
-        neighbor_relation_embedding = relation_embedding_lookup(torch.tensor(neighbor_relations).to(self.device))
-        entity_embedding = entity_embedding_lookup(torch.tensor(entity_ids).to(self.device))
-
-
+        neighbor_entity_embedding = entity_embedding_lookup(torch.tensor(neighbor_entities).long().to(self.device))
+        neighbor_relation_embedding = relation_embedding_lookup(torch.tensor(neighbor_relations).long().to(self.device))
+        entity_embedding = entity_embedding_lookup(torch.tensor(entity_ids).long().to(self.device))
+        
         if len(entity_embedding.shape) == 3:
             entity_embedding_expand = torch.unsqueeze(entity_embedding, 2)
             entity_embedding_expand = entity_embedding_expand.expand(entity_embedding_expand.shape[0], entity_embedding_expand.shape[1], self.config['model']['entity_neighbor_num'] , entity_embedding_expand.shape[3])
@@ -108,7 +107,11 @@ class KGAT(BaseModel):
             attention_value = self.softmax(self.attention_layer2(self.relu(self.attention_layer1(embedding_concat))))
             neighbor_att_embedding = torch.sum(attention_value * neighbor_entity_embedding, dim=2)
             kgat_embedding = self.aggregate(entity_embedding, neighbor_att_embedding)
+        elif len(entity_embedding.shape) == 2:
+            print(entity_embedding)
+            kgat_embedding = self.aggregate(entity_embedding, neighbor_att_embedding)
         else:
+            
             entity_embedding_expand = torch.unsqueeze(entity_embedding, 3)
             entity_embedding_expand = entity_embedding_expand.expand(entity_embedding_expand.shape[0], entity_embedding_expand.shape[1],entity_embedding_expand.shape[2], self.config['model']['entity_neighbor_num'], entity_embedding_expand.shape[4])
             embedding_concat = torch.cat([entity_embedding_expand, neighbor_entity_embedding, neighbor_relation_embedding], 4)
