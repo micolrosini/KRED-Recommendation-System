@@ -1,21 +1,23 @@
+#movies_embedding
+
 import torch
 import torch.nn as nn
-from .KGAT import KGAT
+from .KGAT_MOVIES import KGAT_MOVIES
 import numpy as np
 import sys
 
 
-class News_embedding(nn.Module):
+class Movies_embedding(nn.Module):
 
     def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation,
                  entity_num, position_num, type_num, device):
-        super(News_embedding, self).__init__()
+        super(Movies_embedding, self).__init__()
         self.config = config
         self.doc_feature_dict = doc_feature_dict
         self.adj_entity = adj_entity
         self.adj_relation = adj_relation
         self.device = device
-        self.kgat = KGAT(config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation,device)
+        self.kgat = KGAT_MOVIES(config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation,device)
 
         self.entity_num = entity_num
         self.position_num = position_num
@@ -63,7 +65,7 @@ class News_embedding(nn.Module):
         soft_att_value = self.softmax(att_value)
         weighted_entity_embedding = soft_att_value*entity_embeddings
         weighted_entity_embedding_sum = torch.sum(weighted_entity_embedding, dim=-2)
-        topk_weights = torch.topk(soft_att_value, 16, dim=-2) # changed!!!! remember to change to 20
+        topk_weights = torch.topk(soft_att_value, 20, dim=-2) # changed!!!! remember to change to 20
         if len(soft_att_value.shape) == 3:
             topk_index = topk_weights[1].reshape(topk_weights[1].shape[0],
                                                  topk_weights[1].shape[1] * topk_weights[1].shape[2])
@@ -86,6 +88,7 @@ class News_embedding(nn.Module):
         return entities
 
     def get_entities_nums(self, news_id):
+        
         entities_nums = []
         for news in news_id:
             if type(news) == str:
@@ -94,6 +97,14 @@ class News_embedding(nn.Module):
                 entities_nums.append([])
                 for news_i in news:
                     entities_nums[-1].append(self.doc_feature_dict[news_i][1])
+        if len(entities_nums) == 0:
+          print('news_id' ,news_id)
+        if news_id == '' or news_id == [] :
+          print('strunz')
+        if news_id is None:
+          print('None')
+
+        
         return entities_nums
 
     def get_position(self, news_id):
@@ -133,17 +144,18 @@ class News_embedding(nn.Module):
         return context_vectors
 
     def get_entity_num_embedding(self, entity_nums):
-        entity_num_embedding = self.entity_num_embeddings(torch.tensor(entity_nums).to(self.device))
+        
+        entity_num_embedding = self.entity_num_embeddings(torch.tensor(entity_nums).long().to(self.device))
       
         return entity_num_embedding
 
     def get_title_embedding(self, istitles):
-        #print(istitles)
-        istitle_embedding = self.title_embeddings(torch.tensor(istitles).to(self.device))
+        
+        istitle_embedding = self.title_embeddings(torch.tensor(istitles).long().to(self.device))
         return istitle_embedding
 
     def get_type_embedding(self, type):
-        type_embedding = self.type_embeddings(torch.tensor(type).to(self.device))
+        type_embedding = self.type_embeddings(torch.tensor(type).long().to(self.device))
         return type_embedding
 
 
@@ -153,8 +165,6 @@ class News_embedding(nn.Module):
         istitle = self.get_position(news_id)
         type = self.get_type(news_id)
         context_vecs = self.get_context_vector(news_id)
-        
-     
         context_vecs = torch.FloatTensor(np.array(context_vecs)).to(self.device)
         
 
@@ -162,11 +172,17 @@ class News_embedding(nn.Module):
         istitle_embedding = self.get_title_embedding(istitle)
         type_embedding = self.get_type_embedding(type)
         kgat_entity_embeddings = self.kgat(entities)  # batch(news num) * entity num
-        news_entity_embedding = kgat_entity_embeddings + entity_num_embedding + istitle_embedding + type_embedding #todo
+        if kgat_entity_embeddings is None:
+          news_entity_embedding = entity_num_embedding + istitle_embedding + type_embedding #todo
+          return None
+        else:
+          news_entity_embedding = kgat_entity_embeddings + entity_num_embedding + istitle_embedding + type_embedding #todo
 
         aggregate_embedding, topk_index = self.attention_layer(news_entity_embedding, context_vecs)
         concat_embedding = torch.cat([aggregate_embedding, context_vecs],
                                     len(aggregate_embedding.shape) - 1)
-        news_embeddings = self.tanh(self.final_embedding2(self.relu(self.final_embedding1(concat_embedding))))
+        movies_embeddings = self.tanh(self.final_embedding2(self.relu(self.final_embedding1(concat_embedding))))
 
-        return news_embeddings, topk_index
+        return movies_embeddings, topk_index
+
+

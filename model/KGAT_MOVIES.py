@@ -1,13 +1,14 @@
+#kgat
 import torch
 import torch.nn as nn
 from base.base_model import BaseModel
 import sys
 
 
-class KGAT(BaseModel):
+class KGAT_MOVIES(BaseModel):
 
     def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation, device):
-        super(KGAT, self).__init__()
+        super(KGAT_MOVIES, self).__init__()
         self.config = config
         self.doc_feature_dict = doc_feature_dict
         self.adj_entity = adj_entity
@@ -20,6 +21,9 @@ class KGAT(BaseModel):
         self.relu = nn.ReLU(inplace=True)
         self.convolve_layer = nn.Linear(2*self.config['model']['entity_embedding_dim'],self.config['model']['entity_embedding_dim'])
         self.device = device
+        self.len_2 = 0
+        self.len_3 = 0
+        self.len_4 = 0
 
         
     def get_neighbors(self, entities):
@@ -91,16 +95,21 @@ class KGAT(BaseModel):
         return aggregate_embedding
 
     def forward(self, entity_ids):
+        
+        #print(self.entity_embedding.shape)
         neighbor_entities, neighbor_relations = self.get_neighbors(entity_ids)
 
         entity_embedding_lookup = nn.Embedding.from_pretrained(self.entity_embedding.to(self.device))
+        #print(entity_embedding_lookup(torch.tensor(entity_ids).long().to(self.device)).shape)
         relation_embedding_lookup = nn.Embedding.from_pretrained(self.relation_embedding.to(self.device))
         
-        neighbor_entity_embedding = entity_embedding_lookup(torch.tensor(neighbor_entities).to(self.device))
-        neighbor_relation_embedding = relation_embedding_lookup(torch.tensor(neighbor_relations).to(self.device))
-        entity_embedding = entity_embedding_lookup(torch.tensor(entity_ids).to(self.device))
-
-
+        neighbor_entity_embedding = entity_embedding_lookup(torch.tensor(neighbor_entities).long().to(self.device))
+        neighbor_relation_embedding = relation_embedding_lookup(torch.tensor(neighbor_relations).long().to(self.device))
+        entity_embedding = entity_embedding_lookup(torch.tensor(entity_ids).long().to(self.device))
+        
+        
+        #print(entity_embedding.shape)
+        
         if len(entity_embedding.shape) == 3:
             entity_embedding_expand = torch.unsqueeze(entity_embedding, 2)
             entity_embedding_expand = entity_embedding_expand.expand(entity_embedding_expand.shape[0], entity_embedding_expand.shape[1], self.config['model']['entity_neighbor_num'] , entity_embedding_expand.shape[3])
@@ -108,12 +117,22 @@ class KGAT(BaseModel):
             attention_value = self.softmax(self.attention_layer2(self.relu(self.attention_layer1(embedding_concat))))
             neighbor_att_embedding = torch.sum(attention_value * neighbor_entity_embedding, dim=2)
             kgat_embedding = self.aggregate(entity_embedding, neighbor_att_embedding)
+        elif len(entity_embedding.shape) == 2:
+            
+            kgat_embedding = None
         else:
+            
             entity_embedding_expand = torch.unsqueeze(entity_embedding, 3)
             entity_embedding_expand = entity_embedding_expand.expand(entity_embedding_expand.shape[0], entity_embedding_expand.shape[1],entity_embedding_expand.shape[2], self.config['model']['entity_neighbor_num'], entity_embedding_expand.shape[4])
             embedding_concat = torch.cat([entity_embedding_expand, neighbor_entity_embedding, neighbor_relation_embedding], 4)
             attention_value =  self.softmax(self.attention_layer2(self.relu(self.attention_layer1(embedding_concat))))
             neighbor_att_embedding = torch.sum(attention_value * neighbor_entity_embedding, dim=3)
             kgat_embedding = self.aggregate(entity_embedding, neighbor_att_embedding)
+        
+        
+        
+        
+       
+        
 
         return kgat_embedding
