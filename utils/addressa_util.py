@@ -251,6 +251,32 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
 
     return entity_adj, relation_adj
 
+def obtain_train_test_movies(train_movies_behaviour, movies_behaviours ):
+
+    """
+
+    Return two different lists of users ids for the training and validation phase
+    
+    """
+
+
+    train_movies = []
+    test_movies = []
+    for k,v in movies_behaviours.items():
+        
+        
+        if k.strip() in train_movies_behaviour:
+            
+            for el in v:
+                
+                if el[1].strip() == 'True':
+                    train_movies.append(el[0])
+        else:
+            for el in v:
+                if el[1].strip() == 'True':
+                    test_movies.append(el[0])
+    return train_movies,test_movies
+
 def build_movies_feature_mind(config, addressa_entity2embedd, addressa_entity_embedding):
     """
     Return a dictionary for both trainig and validation users_ids with the encoded information for each film's entities
