@@ -20,6 +20,7 @@ data:
   knowledge_graph_movies : "./data/mind_reader_dataset/triple2id_movies.txt"
   train_movies_behaviour : "./data/mind_reader_dataset/behaviours_movies.txt"
   movies_entity_embedding : "./data/mind_reader_dataset/mind_reader_entity_embedding.vec"
+  valid_news_addressa: './data/valid/week_updated_news_dataset.tsv'
   train_news_addressa: "./data/train/week_updated_news_dataset.tsv"
   entities_addressa : './data/entities-week.csv'
   knowledge_graph_addressa : "./data/knowledge_graph_addressa.tsv"
