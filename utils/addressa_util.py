@@ -251,7 +251,7 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
 
     return entity_adj, relation_adj
 
-def build_addressa_feature_mind(config, addressa_entity2embedd, addressa_entity_embedding):
+def build_movies_feature_mind(config, addressa_entity2embedd, addressa_entity_embedding):
     """
     Return a dictionary for both trainig and validation users_ids with the encoded information for each film's entities
 
@@ -346,7 +346,7 @@ def build_addressa_feature_mind(config, addressa_entity2embedd, addressa_entity_
 
     return addressa_features, 100, 10, 100
 
-def build_news_features_mind(config, entity2embedd):
+def build_news_addressa_features_mind(config, entity2embedd):
     # There are 4 features for each news: postion, freq, category, embeddings
     news_features = {}
     news_feature_dict = {}
