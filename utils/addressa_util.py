@@ -497,7 +497,7 @@ def build_user_history_adressa(config, train_adressa_behaviour, test_adressa_beh
     return user_history_dict
 
 
-def get_behavior_train_test(config, train_split_size = 0.8):
+def get_behavior_train_test(config, train_split_size=0.8):
     """
     :param config: Allows to access the input file
     :param train_split_size: Allows to specify different values of Train Split, must stay within [0.0 , 1,0]
@@ -516,13 +516,88 @@ def get_behavior_train_test(config, train_split_size = 0.8):
     return train_adressa_behaviour, test_adressa_behaviour
 
 
-def get_adressa_user2item_data(config):
+def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_behaviour):
     """
-    # TODO: Implement analogously as for MIND and Movies
-    :return: a dictionary with the user_id, the entity, and the label: +1 if the user likes it or 0 if he doesn't
+    :param train_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (train split)
+    :param test_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (test split)
+    :return: two dictionaries with the needed positive lst, negative lst and remaining data
     """
+    negative_num = config['trainer']['train_neg_num']
+    train_data = {}
+    user_id = []
+    news_id = []
+    label = []
 
-    return
+    for line in train_adressa_behaviour:
+        index, userid, imp_time, history, behavior = line.strip().split('\t')
+
+        behavior = behavior.split(' ')
+        positive_list = []
+        negative_list = []
+        for news in behavior:
+            segments = news.split('-')
+            news_label = segments[-1]
+            segments.pop()
+            newsid = ''
+            for s in segments:
+                newsid = newsid + s + '-'
+            newsid = newsid[:-1]
+            if news_label == "1":
+                positive_list.append(newsid)
+            else:
+                negative_list.append(newsid)
+        for pos_news in positive_list:
+            user_id.append(userid + "_train")
+            if len(negative_list) >= negative_num:
+                neg_news = random.sample(negative_list, negative_num)
+            else:
+                neg_news = negative_list
+                for i in range(negative_num - len(negative_list)):
+                    neg_news.append("N0")
+            all_news = neg_news
+            all_news.append(pos_news)
+            news_id.append(all_news)
+            label.append([])
+            for i in range(negative_num):
+                label[-1].append(0)
+            label[-1].append(1)
+
+    train_data['item1'] = user_id
+    train_data['item2'] = news_id
+    train_data['label'] = label
+
+    dev_data = {}
+    session_id = []
+    user_id = []
+    news_id = []
+    label = []
+
+    for line in test_adressa_behaviour:
+        index, userid, imp_time, history, behavior = line.strip().split('\t')
+        behavior = behavior.split(' ')
+        for news in behavior:
+            segments = news.split('-')
+            news_label = segments[-1]
+            segments.pop()
+            newsid = ''
+            for s in segments:
+                newsid = newsid + s + '-'
+            newsid = newsid[:-1]
+            session_id.append(index)
+            user_id.append(userid + "_dev")
+            if news_label == "1":
+                news_id.append(newsid)
+                label.append(1.0)
+            else:
+                news_id.append(newsid)
+                label.append(0.0)
+
+    dev_data['item1'] = user_id
+    dev_data['session_id'] = session_id
+    dev_data['item2'] = news_id
+    dev_data['label'] = label
+
+    return train_data, dev_data
 
 
 def load_data_mind_adressa():
@@ -530,4 +605,10 @@ def load_data_mind_adressa():
     # TODO: Implement analogously as for MIND and Movies
     :return:
     """
+
+    # train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
+    # user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
+    #
+    # train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_behaviour)
+
     return
