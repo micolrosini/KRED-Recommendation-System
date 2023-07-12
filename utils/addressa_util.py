@@ -460,3 +460,72 @@ def build_news_addressa_features_mind(config, entity2embedd):
             news_features["N0"][j].append(0)
     news_features["N0"][4] = np.zeros(config['model']['document_embedding_dim'])
     return news_features, 100, 10, 100
+
+
+def build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour):
+    """
+    :param train_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (train split)
+    :param test_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (test split)
+    :return: a dictionary for each users with the value the films that are rated positively
+    """
+    user_history_dict = {}
+
+    for line in train_adressa_behaviour:
+        index, user_id, imp_time, history, behavior = line.strip().split('\t')
+        if len(history.split(' ')) >= config['model']['user_his_num']:
+            user_history_dict[user_id + "_train"] = history.split(' ')[:config['model']['user_his_num']]
+        else:
+            user_history_dict[user_id + "_train"] = history.split(' ')
+            for i in range(config['model']['user_his_num'] - len(history.split(' '))):
+                user_history_dict[user_id + "_train"].append("N0")
+            if user_history_dict[user_id + "_train"][0] == '':
+                user_history_dict[user_id + "_train"][0] = 'N0'
+
+    for line in test_adressa_behaviour:
+        index, user_id, imp_time, history, behavior = line.strip().split('\t')
+        if len(history.split(' ')) >= config['model']['user_his_num']:
+            user_history_dict[user_id + "_dev"] = history.split(' ')[:config['model']['user_his_num']]
+        else:
+            user_history_dict[user_id + "_dev"] = history.split(' ')
+            for i in range(config['model']['user_his_num'] - len(history.split(' '))):
+                user_history_dict[user_id + "_dev"].append("N0")
+            if user_history_dict[user_id + "_dev"][0] == '':
+                user_history_dict[user_id + "_dev"][0] = 'N0'
+
+    return user_history_dict
+
+
+def get_behavior_train_test(config, train_split_size = 0.8):
+    """
+    :param config: Allows to access the input file
+    :param train_split_size: Allows to specify different values of Train Split, must stay within [0.0 , 1,0]
+    :return: Two lists of rows (strings) consisting of the train and test splits of the original file
+    """
+
+    if train_split_size < 0 or train_split_size > 1:
+        train_split_size = 0.8
+
+    with open(config["data"]["train_adressa_behaviour"]) as behaviour:
+
+        rows = behaviour.read().splitlines()
+
+        train_adressa_behaviour, test_adressa_behaviour = train_test_split(rows, train_size=train_split_size, random_state=42)
+
+    return train_adressa_behaviour, test_adressa_behaviour
+
+
+def get_adressa_user2item_data(config):
+    """
+    # TODO: Implement analogously as for MIND and Movies
+    :return: a dictionary with the user_id, the entity, and the label: +1 if the user likes it or 0 if he doesn't
+    """
+
+    return
+
+
+def load_data_mind_adressa():
+    """
+    # TODO: Implement analogously as for MIND and Movies
+    :return:
+    """
+    return
