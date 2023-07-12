@@ -22,6 +22,8 @@ from utils.util import *
 import csv
 from train_test import *
 
+from sklearn.model_selection import train_test_split
+
 def write_pickle(data, fname):
     with open(fname, 'wb') as file:
         pickle.dump(data, file)
