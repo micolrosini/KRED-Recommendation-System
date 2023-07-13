@@ -6,7 +6,7 @@ data_loader:
     num_workers: 1
 
 data:
-  train_news : "./data/train/news.tsv"
+ train_news : "./data/train/news.tsv"
   train_behavior : "./data/train/behaviors.tsv"
   valid_news : "./data/valid/news.tsv"
   valid_behavior : "./data/valid/behaviors.tsv"
@@ -26,6 +26,8 @@ data:
   entities_addressa : './data/entities-week.csv'
   knowledge_graph_addressa : "./data/knowledge_graph_addressa.tsv"
   relations: "./data/knowledge_graph_addressa.tsv"
+  addressa_entity_embedding: './data/entities_embedding.vec'
+  addressa_relation_embedding: './data/relations_embedding.vec'
 
   train_movies_linked_entities : "./data/mind_reader_dataset/trainmovieswith_entities.txt"
   test_movies_linked_entities : "./data/mind_reader_dataset/testmovieswith_entities.txt"
