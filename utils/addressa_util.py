@@ -18,7 +18,7 @@ import zipfile
 from tqdm import tqdm
 import os
 import ast
-from utils.util import *
+from util import *
 import csv
 from train_test import *
 
