@@ -6,7 +6,7 @@ data_loader:
     num_workers: 1
 
 data:
- train_news : "./data/train/news.tsv"
+  train_news : "./data/train/news.tsv"
   train_behavior : "./data/train/behaviors.tsv"
   valid_news : "./data/valid/news.tsv"
   valid_behavior : "./data/valid/behaviors.tsv"
