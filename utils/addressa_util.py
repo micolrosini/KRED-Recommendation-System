@@ -599,16 +599,68 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
 
     return train_data, dev_data
 
-
-def load_data_mind_adressa():
+def load_data_mind_adressa(config):
     """
     # TODO: Implement analogously as for MIND and Movies
     :return:
     """
+    # Take all the wikidata id of the news entities
+    entities = entities_addressa(config)
+
+    # Creating a dictionary with key the wikidata id and value the corresponding id, the id is a number that goes from 1 to the lenght of "movies_entities"
+    entity2id = entity_to_id_addressa(entities)
+
+    # Creating the loist of vector which will contain the list of the entities' embeddings
+    entity_embedding = [np.zeros(config["model"]["entity_embedding_dim"])]  # array with 100 zeros
+
+    # This will be a dictionary with key the wikidata id and value the index in the 'movies_entity_embedding' which corresponds to the relative embedding
+    entity2embedd = {}
+
+    entity2embedd, entity_embedding = get_addressa_entities_embedding(config, entity_embedding,
+                                                                                  entity2embedd)
+
+    # Obtaining a dictionary with wikidata id of all the relations as key and the id as values.
+    relations = relation2id_addressa(config)
+
+    # list of all the relations that are in the mind_reader dataset
+    news_relations = get_addressa_relations(config)
+
+    # dictionary with key the wikidata id of the relations and index the corresponding index of the news dataset
+    relation2id = {}
+    for news_r in news_relations:
+        relation2id[news_r] = relations[news_r]
+
+        # List of embedding vector for each relation
+    relation_embeddings = get_addressa_relations_embeddings(config)
+
+    e_a, r_a = addressa_construct_adj_mind(config, entity2embedd, relation2id)
+    
+    # build news adessa features
+    news_features, max_entity_freq, max_entity_pos, max_entity_type = build_movies_feature_mind(config, entity2embedd,entity_embedding)
 
     # train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
     # user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
     #
     # train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_behaviour)
 
-    return
+    for i, v in enumerate(entity_embedding):
+        emb_adr = []
+        for index, number in enumerate(v):
+            emb_adr.append(float(number))
+        entity_embedding[i] = np.array(emb_adr)
+
+    entity_embedding = torch.FloatTensor(np.array(entity_embedding))
+    relation_embeddings = torch.FloatTensor(np.array(relation_embeddings))
+
+    data = [user_history_dict, entity_embedding, relation_embeddings, e_a, r_a, news_features, \
+            max_entity_freq, max_entity_pos, max_entity_type, train_data, dev_data]
+
+    ids_to_not_remove = []
+    for el in data[-1]['item1']:
+        if el in data[0].keys():
+            ids_to_not_remove.append(el)
+
+    data[-1]['item1'] = ids_to_not_remove
+
+    return data
+
