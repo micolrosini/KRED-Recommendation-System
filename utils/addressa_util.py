@@ -24,14 +24,17 @@ from train_test import *
 
 from sklearn.model_selection import train_test_split
 
+
 def write_pickle(data, fname):
     with open(fname, 'wb') as file:
         pickle.dump(data, file)
+
 
 def read_pickle(fname):
     with open(fname, 'rb') as file:
         data = pickle.load(file)
     return data
+
 
 def addressa_entity_embedding(file_to_embed, output_file_name):
     # Read csv file with entities wikiid
@@ -45,12 +48,10 @@ def addressa_entity_embedding(file_to_embed, output_file_name):
     # Generate embeddings for the entities
     embeddings = []
 
-
     for i, entity in enumerate(tqdm(entities)):
         # Encode the entity
         embedding = model.encode(entity)
         embeddings.append(embedding)
-
 
     # Output .vec file path
     output_path = './data/' + output_file_name + '.vec'
@@ -62,6 +63,7 @@ def addressa_entity_embedding(file_to_embed, output_file_name):
             f.write(f'{entity}\t{embedding_str}\n')
 
     print('\nEmbedding process finished.')
+
 
 def addressa_relation_embedding(file_to_embed, output_file_name):
     # Read csv file with entities wikiid
@@ -87,7 +89,6 @@ def addressa_relation_embedding(file_to_embed, output_file_name):
         # Encode the relation
         embedding = model.encode(relation)
         embeddings.append(embedding)
-
 
     # Output .vec file path
     output_path = './data/' + output_file_name + '.vec'
@@ -116,6 +117,7 @@ def entities_addressa(config):
 
     return entities
 
+
 def entity_to_id_addressa(entities):
     """
     Return dictionary with entity `WikidataId' as key and entity id(numbers) as value. The entity id is the id of the entity in
@@ -126,6 +128,7 @@ def entity_to_id_addressa(entities):
     for entity_id, entity in enumerate(entities):
         entity2id[entity] = entity_id + 1  # increment the id by 1
     return entity2id
+
 
 def relation2id_addressa(config):
     """
@@ -146,6 +149,7 @@ def relation2id_addressa(config):
         relations[wikidatid] = int(relationid) + 1
     return relations
 
+
 def get_addressa_entities_embedding(config, addressa_entity_embedding, addressa_entity2embedd):
     """
     Return a dictionary with the wikidataIDs of the dataset addressa as key and its corresponding index in the entity embedding list as value , and it also return the list with the embeddings for each entity
@@ -161,6 +165,7 @@ def get_addressa_entities_embedding(config, addressa_entity_embedding, addressa_
         addressa_entity_embedding.append(embedding[1:])
         i += 1
     return addressa_entity2embedd, addressa_entity_embedding
+
 
 def get_addressa_relations(config):
     """
@@ -192,6 +197,7 @@ def get_addressa_relations_embeddings(config):
             linesplit = [float(i) for i in linesplit]
             relation_embedding.append(linesplit)
         return relation_embedding
+
 
 def build_entity_id_dict(wikiid_list):
     entity_id_dict = {}
@@ -253,6 +259,7 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
 
     return entity_adj, relation_adj
 
+
 def obtain_train_test_movies(train_movies_behaviour, movies_behaviours ):
 
     """
@@ -278,6 +285,7 @@ def obtain_train_test_movies(train_movies_behaviour, movies_behaviours ):
                 if el[1].strip() == 'True':
                     test_movies.append(el[0])
     return train_movies,test_movies
+
 
 def build_movies_feature_mind(config, addressa_entity2embedd, addressa_entity_embedding):
     """
@@ -373,6 +381,7 @@ def build_movies_feature_mind(config, addressa_entity2embedd, addressa_entity_em
     addressa_features["N0"][4] = np.zeros(config['model']['document_embedding_dim'])
 
     return addressa_features, 100, 10, 100
+
 
 def build_news_addressa_features_mind(config, entity2embedd):
     # There are 4 features for each news: postion, freq, category, embeddings
@@ -599,10 +608,10 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
 
     return train_data, dev_data
 
+
 def load_data_mind_adressa(config):
     """
-    # TODO: Implement analogously as for MIND and Movies
-    :return:
+    :return data: list with all the final data needed to run the model
     """
     # Take all the wikidata id of the news entities
     entities = entities_addressa(config)
@@ -610,7 +619,7 @@ def load_data_mind_adressa(config):
     # Creating a dictionary with key the wikidata id and value the corresponding id, the id is a number that goes from 1 to the lenght of "movies_entities"
     entity2id = entity_to_id_addressa(entities)
 
-    # Creating the loist of vector which will contain the list of the entities' embeddings
+    # Creating the list of vector which will contain the list of the entities' embeddings
     entity_embedding = [np.zeros(config["model"]["entity_embedding_dim"])]  # array with 100 zeros
 
     # This will be a dictionary with key the wikidata id and value the index in the 'movies_entity_embedding' which corresponds to the relative embedding
@@ -634,14 +643,14 @@ def load_data_mind_adressa(config):
     relation_embeddings = get_addressa_relations_embeddings(config)
 
     e_a, r_a = addressa_construct_adj_mind(config, entity2embedd, relation2id)
-    
+
     # build news adessa features
     news_features, max_entity_freq, max_entity_pos, max_entity_type = build_movies_feature_mind(config, entity2embedd,entity_embedding)
 
-    # train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
-    # user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
-    #
-    # train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_behaviour)
+    train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
+    user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
+
+    train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_behaviour)
 
     for i, v in enumerate(entity_embedding):
         emb_adr = []
