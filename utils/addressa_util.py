@@ -18,7 +18,7 @@ import zipfile
 from tqdm import tqdm
 import os
 import ast
-from util import *
+from utils.util import *
 import csv
 from train_test import *
 
@@ -191,10 +191,10 @@ def get_addressa_relations_embeddings(config):
 
     relation_embedding = [np.zeros(config['model']['entity_embedding_dim'])]
     movies_relation2id_corrected = {}
-    with open(config['data']['relation_embedding'], 'r', encoding='utf-8') as fp_relation_embedding:
+    with open(config['data']['addressa_relation_embedding'], 'r', encoding='utf-8') as fp_relation_embedding:
         for line in fp_relation_embedding:
             linesplit = line.strip().split('\t')
-            linesplit = [float(i) for i in linesplit]
+            linesplit = [float(i) for i in linesplit[1:]]
             relation_embedding.append(linesplit)
         return relation_embedding
 
@@ -245,7 +245,7 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
     for key in tqdm(kg.keys()):
         new_key = entities_dict[key.strip()]
 
-        while len(entity_adj) <= new_key:
+        while len(entity_adj[int(new_key)]) < config['model']['entity_neighbor_num']:
             entity_adj.append([])
             relation_adj.append([])
 
@@ -253,9 +253,10 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
             # for _ in range(config['model']['entity_neighbor_num']):
             i = random.randint(0, len(kg[key]) - 1) # taking a random tail+relation from the list of values of the head entity
             # index of the corresponding embedding vector
-            entity_adj[new_key].append(entities_dict[kg[key][i][0].strip()])
+            entity_adj[int(new_key)].append(entities_dict[kg[key][i][0].strip()])
+
             # relation [number from 1 to..] append relation ( is a number? or an embedding?)
-            relation_adj[new_key].append(relations_dict[kg[key][i][1]])
+            relation_adj[int(new_key)].append(relations_dict[kg[key][i][1]])
 
     return entity_adj, relation_adj
 
@@ -285,102 +286,6 @@ def obtain_train_test_movies(train_movies_behaviour, movies_behaviours ):
                 if el[1].strip() == 'True':
                     test_movies.append(el[0])
     return train_movies,test_movies
-
-
-def build_movies_feature_mind(config, addressa_entity2embedd, addressa_entity_embedding):
-    """
-    Return a dictionary for both trainig and validation users_ids with the encoded information for each film's entities
-
-    """
-    addressa_features = {}
-
-    addressa_feature_dict = {}
-
-    with open(config['data']['train_movies_linked_entities']) as fp_train_addressa:
-
-        for i, line in enumerate(fp_train_addressa):
-            variable1, variable2 = line.split(' ', 1)
-
-            # Rimuovi i caratteri non desiderati come ":" o spazi iniziali/finali
-            variable1 = variable1.replace(':', '').strip()  # movie's wikidata id
-
-            variable2 = variable2.strip()  # entities
-
-            # vert and subvert are the category and subcategory of the news
-            ad_emb = []
-            for i in addressa_entity_embedding[addressa_entity2embedd[variable1]]:
-                ad_emb.append(float(i))
-            ad_emb = np.array(ad_emb, dtype=np.float32)
-
-            addressa_feature_dict[variable1] = (ad_emb, variable2)
-
-    with open(config['data']['test_movies_linked_entities']) as fp_test_addressa:
-        for i, line in enumerate(fp_test_addressa):
-            variable1, variable2 = line.split(' ', 1)
-
-            # Rimuovi i caratteri non desiderati come ":" o spazi iniziali/finali
-            variable1 = variable1.replace(':', '').strip()  # movie's wikidata id
-
-            variable2 = variable2.strip()  # entities
-
-            ad_emb = []
-            for i in addressa_entity_embedding[addressa_entity2embedd[variable1]]:
-                ad_emb.append(float(i))
-            ad_emb = np.array(ad_emb)
-
-            addressa_feature_dict[variable1] = (ad_emb, variable2)
-
-    entity_type_dict = {}
-    entity_type_index = 1
-
-    for k, v in addressa_feature_dict.items():
-        addressa_entity_feature_list = []
-        addressa_entity_feature = {}
-
-        sentence_embedding = v[0]
-
-        entities_categories = ast.literal_eval(v[1])
-
-        for entity_category in entities_categories:
-
-            if entity_category[1] not in entity_type_dict.keys():
-                entity_type_dict[entity_category[1]] = entity_type_index
-                entity_type_index = entity_type_index + 1
-
-            addressa_entity_feature[entity_category[0].strip()] = \
-                (1, 1, entity_type_dict[entity_category[1]])  # entity_freq, entity_position, entity_type
-
-        for entity, v in addressa_entity_feature.items():
-            if entity in addressa_entity2embedd:
-                addressa_entity_feature_list.append(
-                    [addressa_entity2embedd[entity], addressa_entity_feature[entity][0], addressa_entity_feature[entity][1],
-                     addressa_entity_feature[entity][2]])
-
-        addressa_entity_feature_list.append([0, 0, 0, 0])
-        if len(addressa_entity_feature_list) > config['model']['news_entity_num']:
-            addressa_entity_feature_list = addressa_entity_feature_list[:config['model']['news_entity_num']]
-        else:
-            for i in range(len(addressa_entity_feature_list), config['model']['news_entity_num']):
-                addressa_entity_feature_list.append([0, 0, 0, 0])
-
-        addressa_feature_list_ins = [[], [], [], [],
-                                   []]  # first list is the entity embedding index, second list is the title position, third list is occurrence, fourth list is the category, last list is teh embedding
-        for i in range(len(addressa_entity_feature_list)):
-            for j in range(4):
-                addressa_feature_list_ins[j].append(addressa_entity_feature_list[i][j])
-
-        addressa_feature_list_ins[4] = sentence_embedding
-
-        addressa_features[k] = addressa_feature_list_ins
-
-    addressa_features["N0"] = [[], [], [], [], []]
-
-    for i in range(config['model']['news_entity_num']):
-        for j in range(4):
-            addressa_features["N0"][j].append(0)
-    addressa_features["N0"][4] = np.zeros(config['model']['document_embedding_dim'])
-
-    return addressa_features, 100, 10, 100
 
 
 def build_news_addressa_features_mind(config, entity2embedd):
@@ -645,7 +550,7 @@ def load_data_mind_adressa(config):
     e_a, r_a = addressa_construct_adj_mind(config, entity2embedd, relation2id)
 
     # build news adessa features
-    news_features, max_entity_freq, max_entity_pos, max_entity_type = build_movies_feature_mind(config, entity2embedd,entity_embedding)
+    news_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features_mind(config, entity2embedd,entity_embedding)
 
     train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
     user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
