@@ -28,7 +28,7 @@ parser.add_argument('-d', '--device', default=None, type=str,
                     help='indices of GPUs to enable (default: all)')
 
 config = ConfigParser.from_args(parser)
-#config['trainer']['movies_adaptation'] = 'True'
+config['trainer']['adressa_adaptation'] = 'True'
 
 #creating entities and relations dictionary to use while building adjacent matrix
 # Read csv file with entities wikiid
