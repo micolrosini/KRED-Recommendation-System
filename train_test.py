@@ -157,8 +157,10 @@ def single_task_training(config, data):
     else:
         print("Error: task name error.")
 
-    device, deviceids = prepare_device(config['n_gpu'])
-    #device = 'mps'
+    if config['trainer']['adressa_adaptation']:
+        device, deviceids = prepare_device(config['n_gpu'])
+    else:
+        device = 'mps'
     model = KREDModel(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
                       relation_adj, entity_num, position_num, type_num, device).to(device)
 
