@@ -17,6 +17,8 @@ relation_file= 'relations_embedding'
 data_path = './data/'
 adj_path = data_path + 'addressa_adj_matrix.txt'
 
+print(f'\n It is installed Pytorch V. {torch.__version__}')
+
 parser = argparse.ArgumentParser(description='KRED')
 parser.add_argument('-c', '--config', default="./config.yaml", type=str,
                     help='config file path (default: None)')
