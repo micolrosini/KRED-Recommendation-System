@@ -150,19 +150,30 @@ def relation2id_addressa(config):
     return relations
 
 
-def get_addressa_entities_embedding(config, addressa_entity_embedding, addressa_entity2embedd):
+def get_addressa_entities_embedding(config, addressa_entity2embedd):
     """
     Return a dictionary with the wikidataIDs of the dataset addressa as key and its corresponding index in the entity embedding list as value , and it also return the list with the embeddings for each entity
 
     """
+    # Creating the list of vector which will contain the list of the entities' embeddings
+    addressa_entity_embedding = [np.zeros(config["model"]["entity_embedding_dim"])]  # array with 100 zeros
 
     embeddings = open(config['data']['addressa_entity_embedding'], 'r', encoding='utf-8')
     i = 0
     for line in embeddings:
         embedding = line.split()
+        linesplit = line.strip().split('\t')
+        linesplit = [float(i) for i in linesplit[1:]]
+
+        # check embedding length and pad or trunc if needed
+        if len(linesplit) < config['model']['entity_embedding_dim']:
+            padding = [0.0] * (config['model']['entity_embedding_dim'] - len(linesplit))
+            linesplit = np.concatenate((linesplit, padding))
+        elif len(linesplit) > config['model']['entity_embedding_dim']:
+            linesplit = linesplit[:config['model']['entity_embedding_dim']]
 
         addressa_entity2embedd[embedding[0]] = i + 1
-        addressa_entity_embedding.append(embedding[1:])
+        addressa_entity_embedding.append(linesplit)
         i += 1
     return addressa_entity2embedd, addressa_entity_embedding
 
@@ -195,6 +206,14 @@ def get_addressa_relations_embeddings(config):
         for line in fp_relation_embedding:
             linesplit = line.strip().split('\t')
             linesplit = [float(i) for i in linesplit[1:]]
+
+            # check embedding length and pad or trunc if needed
+            if len(linesplit) < config['model']['entity_embedding_dim']:
+                    padding = [0.0] * (config['model']['entity_embedding_dim'] - len(linesplit))
+                    linesplit = np.concatenate((linesplit, padding))
+            elif len(linesplit) > config['model']['entity_embedding_dim']:
+                    linesplit = linesplit[:config['model']['entity_embedding_dim']]
+
             relation_embedding.append(linesplit)
         return relation_embedding
 
@@ -208,79 +227,63 @@ def build_entity_id_dict(wikiid_list):
 
 def addressa_construct_adj_mind(config, entities_dict, relations_dict):
     print('\nConstructing adjacency matrix ...')
-    # ids = set(entities_dict.values()) # index of the corresponding embedding vector
+    filename = './data/kg_adr_adjacent_matrix.json'
 
-    with open(config['data']['knowledge_graph_addressa'], 'r', encoding='utf-8') as graph_file_fp:
-        kg = {}  # dictionary with entity(numbers from 1 to ...) as keys and relation+tail as values, also tails that are not already encoded(their head is not in the train ) become keys with values = head+relation
-        for line in tqdm(graph_file_fp):  # check how values are encoded here
-            linesplit = line.split('\t')
-            head = linesplit[0]
-            relation = linesplit[1]
-            tail = linesplit[2]
-            if head.strip() in list(entities_dict.keys()):
-                if tail.strip() in list(entities_dict.keys()):
-
-                    if head not in kg:  # if entity head is not in the 'kg' dictionary
+    # Check whether the kg dictionary already exists
+    if os.path.exists(filename):
+        print('\nKnowledge graph has already been analyzed, and the KG dictionary already exists. Skipping the first step in matrix building.')
+        # Reopen the file and load the dictionary
+        with open(filename, 'r') as file:
+            kg = json.load(file)
+    else:
+        with open(config['data']['knowledge_graph_addressa'], 'r', encoding='utf-8') as graph_file_fp:
+            kg = {}  # dictionary with entity(numbers from 1 to ...) as keys and relation+tail as values, also tails that are not already encoded(their head is not in the train ) become keys with values = head+relation
+            for line in tqdm(graph_file_fp):
+                linesplit = line.split('\t')
+                head = linesplit[0]
+                relation = linesplit[1]
+                tail = linesplit[2]
+                if head.strip() in entities_dict and tail.strip() in entities_dict:
+                    if head not in kg:
                         kg[head] = []
                     kg[head].append((tail, relation))
 
-            if tail.strip() in list(entities_dict.keys()):
-                if head.strip() in list(entities_dict.keys()):
-
+                if tail.strip() in entities_dict and head.strip() in entities_dict:
                     if tail not in kg:
                         kg[tail] = []
                     kg[tail].append((head, relation))
 
-    entity_num = len(entities_dict)  # number of entities data in the training data
-    entity_adj = [[] for _ in range(entity_num + 1)]  # Initialize entity adjacency list
-    relation_adj = [[] for _ in range(entity_num + 1)]  # Initialize relation adjacency list
-    # id2entity = {v: k for k, v in entities_dict.items()}
+        # Save kg dictionary to a file
+        with open(filename, 'w') as file:
+            json.dump(kg, file)
 
-    for i in range(config['model']['entity_neighbor_num']):  # maximum number of neighbours
+    entity_num = len(entities_dict)
+    entity_adj = [[] for _ in range(entity_num + 1)]
+    relation_adj = [[] for _ in range(entity_num + 1)]
+
+    for _ in range(config['model']['entity_neighbor_num']):
         entity_adj[0].append(0)
         relation_adj[0].append(0)
-    for key in kg.keys():
+
+    for key in tqdm(kg.keys()):
         new_key = entities_dict[key.strip()]
-        print(entity_adj[int(new_key)])
-        while len(entity_adj[int(new_key)]) < config['model']['entity_neighbor_num']:
-            # for _ in range(config['model']['entity_neighbor_num']):
-            i = random.randint(0, len(
-                kg[key]) - 1)  # taking a random tail+relation from the list of values of the head entity
 
-            # index of the corresponding embedding vector
+        while new_key >= len(entity_adj):
+            entity_adj.append([])
+            relation_adj.append([])
 
-            entity_adj[int(new_key)].append(
-                entities_dict[(kg[key][i][0]).strip()])  # entity [number from 1 to..] append tail = number
-            relation_adj[int(new_key)].append(relations_dict[(
-                kg[key][i][1])])  # relation [number from 1 to..] append relation ( is a number? or an embedding?)
+        while len(entity_adj[new_key]) < config['model']['entity_neighbor_num']:
+            entity_adj[new_key].append(0)
+            relation_adj[new_key].append(0)
 
+        neighbors = random.sample(kg[key], min(config['model']['entity_neighbor_num'], len(kg[key])))
+
+        for neighbor in neighbors:
+            tail, relation = neighbor
+            entity_adj[new_key].append(entities_dict[tail.strip()])
+            relation_adj[new_key].append(relations_dict[relation.strip()])
 
     return entity_adj, relation_adj
-    # id2entity = {v: k for k, v in entities_dict.items()}
-    #for key in tqdm(kg.keys()):
-   #     new_key = entities_dict[key.strip()]
-
-       # while len(entity_adj[new_key]) < config['model']['entity_neighbor_num']: #and len(entity_adj[new_key]) < len(kg[key]):  # maximum number of neighbours
-        #        i = random.randint(0, len(kg[key]) - 1)
-         #       entity_adj[new_key].append(entities_dict[kg[key][i][0].strip()])
-          #      relation_adj[new_key].append(relations_dict[kg[key][i][1]])
-
-      #  return entity_adj, relation_adj
-
-    #for key in tqdm(kg.keys()):
-        # id2entity = {v: k for k, v in entities_dict.items()}
-     #   new_key = entities_dict[key.strip()]
-
-   #     while len(entity_adj[new_key]) < config['model']['entity_neighbor_num']:
-     #       # for _ in range(config['model']['entity_neighbor_num']):
-      #      i = random.randint(0, len(kg[key]) - 1)  # taking a random tail+relation from the list of values of the head entity
-            # index of the corresponding embedding vector
-       #     entity_adj[int(new_key)].append(entities_dict[kg[key][i][0].strip()])
-
-            # relation [number from 1 to..] append relation ( is a number? or an embedding?)
-        #    relation_adj[int(new_key)].append(relations_dict[kg[key][i][1]])
-
-
 
 
 
