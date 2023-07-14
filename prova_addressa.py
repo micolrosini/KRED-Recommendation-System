@@ -1,10 +1,13 @@
 from parse_config import ConfigParser
+import torch
 import os
+import numpy as np
 import pandas as pd
 import random
 from time import time
 from utils.addressa_util import *
 import argparse
+from train_test import *
 
 # set folder and files path
 path_entity = './data/entities-week.csv'
@@ -92,34 +95,33 @@ else:
             if str(element) != '[]':
                 file.write(str(element) + '\n')
 
-
-
  # List of embedding vector for each relation
 relation_embeddings =get_addressa_relations_embeddings(config)
 
-print(relation_embeddings)
-
-# build test and train data
+# build test and train data from behaviours
 train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
 
 user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
 
-train_new, test_news = obtain_train_test_adressa(train_adressa_behaviour,config["data"]["train_adressa_behaviour"])
+train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour=train_adressa_behaviour, test_adressa_behaviour=test_adressa_behaviour)
 
-#ad_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features_mind(config,ad_entity2embedd)
-#entity_adj, relation_adj = addressa_construct_adj_mind(config, ad_entity2embedd, adr_relation2id)
-#print(relation_adj)
+train_news = train_data['train_urls']
+test_news = dev_data['dev_urls']
 
-#adr_behaviours = construct_movies_behaviours(config)
+if os.path.exists(config['data']['valid_news_addressa']) and os.path.exists(config['data']['train_news_addressa']):
+    print('News Adressa test and train tsv already exist\n')
+else:
+    _, _ = create_train_test_adressa_datasets(config, train_urls=train_news, test_urls=test_news)
 
-#user_adr_behaviours = list(adr_behaviours.keys())
-#train_size = 0.8
-#index_train = int(len(user_adr_behaviours)*train_size)
-#train_adr_behaviour = user_adr_behaviours[:index_train]
-#for i,el in enumerate(train_adr_behaviour):
+ad_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features_mind(config,ad_entity2embedd)
 
-#    train_adr_behaviour[i] = el.strip()
+entity_adj, relation_adj = addressa_construct_adj_mind(config, ad_entity2embedd, adr_relation2id)
 
-#test_adr_behaviour = user_adr_behaviours[index_train:]
-#for i,el in enumerate(test_adr_behaviour):
-#    test_adr_behaviour[i] = el.strip()
+ad_entity_embedding = torch.FloatTensor(np.array(ad_entity_embedding))
+relation_embeddings = torch.FloatTensor(np.array(relation_embeddings))
+
+data = [user_history_dict, ad_entity_embedding, relation_embeddings, entity_adj,relation_adj, ad_features,\
+    max_entity_freq, max_entity_pos, max_entity_type, train_data, dev_data]
+
+
+single_task_training(config, data)

@@ -6,26 +6,26 @@ data_loader:
     num_workers: 1
 
 data:
-  train_news : "./data/train/news.tsv"
-  train_behavior : "./data/train/behaviors.tsv"
-  valid_news : "./data/valid/news.tsv"
-  valid_behavior : "./data/valid/behaviors.tsv"
-  knowledge_graph : "./data/kg/kg/triple2id.txt"
-  entity_embedding : "./data/kg/kg/entity2vecd100.vec"
-  relation_embedding : "./data/kg/kg/relation2vecd100.vec"
-  entity_index : "./data/kg/kg/entity2id.txt"
-  relation_index : "./data/kg/kg/relation2id.txt"
+  train_news: "./data/train/news.tsv"
+  train_behavior: "./data/train/behaviors.tsv"
+  valid_news: "./data/valid/news.tsv"
+  valid_behavior: "./data/valid/behaviors.tsv"
+  knowledge_graph: "./data/kg/kg/triple2id.txt"
+  entity_embedding: "./data/kg/kg/entity2vecd100.vec"
+  relation_embedding: "./data/kg/kg/relation2vecd100.vec"
+  entity_index: "./data/kg/kg/entity2id.txt"
+  relation_index: "./data/kg/kg/relation2id.txt"
   sentence_embedding_folder: "./data/sentence_embedding/"
   train_movies: "./data/mind_reader_dataset/entity2label_movies.txt"
-  knowledge_graph_movies : "./data/mind_reader_dataset/triple2id_movies.txt"
-  train_movies_behaviour : "./data/mind_reader_dataset/behaviours_movies.txt"
-  train_adressa_behaviour : "./data/mind_reader_dataset/behaviours_adressa.tsv"
-  movies_entity_embedding : "./data/mind_reader_dataset/mind_reader_entity_embedding.vec"
+  knowledge_graph_movies: "./data/mind_reader_dataset/triple2id_movies.txt"
+  train_movies_behaviour: "./data/mind_reader_dataset/behaviours_movies.txt"
+  train_adressa_behaviour: "./data/behaviours_adressa.tsv"
+  movies_entity_embedding: "./data/mind_reader_dataset/mind_reader_entity_embedding.vec"
   data_news_adressa: './data/week_updated_news_dataset.tsv'
   valid_news_addressa: './data/valid/adr/adressa_test_news_dataset.tsv'
   train_news_addressa: "./data/train/adr/adressa_train_news_dataset.tsv"
-  entities_addressa : './data/entities-week.csv'
-  knowledge_graph_addressa : "./data/knowledge_graph_addressa.tsv"
+  entities_addressa: './data/entities-week.csv'
+  knowledge_graph_addressa: "./data/knowledge_graph_addressa.tsv"
   relations: "./data/knowledge_graph_addressa.tsv"
   addressa_entity_embedding: './data/entities_embedding.vec'
   addressa_relation_embedding: './data/relations_embedding.vec'
@@ -47,7 +47,7 @@ trainer:
   movies_adaptation: "False"
   training_type: "single_task" # single_task or multi-task
   task: "user2item" # task should be within: user2item, item2item, vert_classify, pop_predict
-  epochs: 100
+  epochs: 10
   smooth_lamda: 10
   train_neg_num: 4
   save_dir: "./out/saved/"

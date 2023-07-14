@@ -207,7 +207,7 @@ def build_entity_id_dict(wikiid_list):
 
 
 def addressa_construct_adj_mind(config, entities_dict, relations_dict):
-    print('constructing adjacency matrix ...')
+    print('\nConstructing adjacency matrix ...')
     # ids = set(entities_dict.values()) # index of the corresponding embedding vector
 
     with open(config['data']['knowledge_graph_addressa'], 'r', encoding='utf-8') as graph_file_fp:
@@ -232,33 +232,56 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
                     kg[tail].append((head, relation))
 
     entity_num = len(entities_dict)  # number of entities data in the training data
-    entity_adj = []
-    relation_adj = []
+    entity_adj = [[] for _ in range(entity_num + 1)]  # Initialize entity adjacency list
+    relation_adj = [[] for _ in range(entity_num + 1)]  # Initialize relation adjacency list
     # id2entity = {v: k for k, v in entities_dict.items()}
-    for i in range(entity_num + 1):
-        entity_adj.append([])  # list of a number of lists equal to the entities in the data train
-        relation_adj.append([])
+
     for i in range(config['model']['entity_neighbor_num']):  # maximum number of neighbours
         entity_adj[0].append(0)
         relation_adj[0].append(0)
-
-    for key in tqdm(kg.keys()):
+    for key in kg.keys():
         new_key = entities_dict[key.strip()]
-
+        print(entity_adj[int(new_key)])
         while len(entity_adj[int(new_key)]) < config['model']['entity_neighbor_num']:
-            entity_adj.append([])
-            relation_adj.append([])
-
-        while len(entity_adj[new_key]) < config['model']['entity_neighbor_num']:
             # for _ in range(config['model']['entity_neighbor_num']):
-            i = random.randint(0, len(kg[key]) - 1) # taking a random tail+relation from the list of values of the head entity
-            # index of the corresponding embedding vector
-            entity_adj[int(new_key)].append(entities_dict[kg[key][i][0].strip()])
+            i = random.randint(0, len(
+                kg[key]) - 1)  # taking a random tail+relation from the list of values of the head entity
 
-            # relation [number from 1 to..] append relation ( is a number? or an embedding?)
-            relation_adj[int(new_key)].append(relations_dict[kg[key][i][1]])
+            # index of the corresponding embedding vector
+
+            entity_adj[int(new_key)].append(
+                entities_dict[(kg[key][i][0]).strip()])  # entity [number from 1 to..] append tail = number
+            relation_adj[int(new_key)].append(relations_dict[(
+                kg[key][i][1])])  # relation [number from 1 to..] append relation ( is a number? or an embedding?)
+
 
     return entity_adj, relation_adj
+    # id2entity = {v: k for k, v in entities_dict.items()}
+    #for key in tqdm(kg.keys()):
+   #     new_key = entities_dict[key.strip()]
+
+       # while len(entity_adj[new_key]) < config['model']['entity_neighbor_num']: #and len(entity_adj[new_key]) < len(kg[key]):  # maximum number of neighbours
+        #        i = random.randint(0, len(kg[key]) - 1)
+         #       entity_adj[new_key].append(entities_dict[kg[key][i][0].strip()])
+          #      relation_adj[new_key].append(relations_dict[kg[key][i][1]])
+
+      #  return entity_adj, relation_adj
+
+    #for key in tqdm(kg.keys()):
+        # id2entity = {v: k for k, v in entities_dict.items()}
+     #   new_key = entities_dict[key.strip()]
+
+   #     while len(entity_adj[new_key]) < config['model']['entity_neighbor_num']:
+     #       # for _ in range(config['model']['entity_neighbor_num']):
+      #      i = random.randint(0, len(kg[key]) - 1)  # taking a random tail+relation from the list of values of the head entity
+            # index of the corresponding embedding vector
+       #     entity_adj[int(new_key)].append(entities_dict[kg[key][i][0].strip()])
+
+            # relation [number from 1 to..] append relation ( is a number? or an embedding?)
+        #    relation_adj[int(new_key)].append(relations_dict[kg[key][i][1]])
+
+
+
 
 
 def obtain_train_test_adressa(config, train_adressa_behaviour, adressa_behaviours ):
@@ -307,92 +330,107 @@ def obtain_train_test_adressa(config, train_adressa_behaviour, adressa_behaviour
 
 
 def build_news_addressa_features_mind(config, entity2embedd):
-    # There are 4 features for each news: postion, freq, category, embeddings
+    # There are 4 features for each news: position, freq, category, embeddings
     news_features = {}
     news_feature_dict = {}
     embedding_folder = config['data']['sentence_embedding_folder']
-    # Load sentence embeddings from file if present
+
     with open(config['data']['train_news_addressa'], 'r', encoding='utf-8') as fp_train_news:
         if os.path.exists(embedding_folder + "train_news_addressa_embeddings.pkl"):
             train_sentences_embedding = read_pickle(embedding_folder + "train_news_addressa_embeddings.pkl")
-        for i, line in enumerate(fp_train_news):
+
+        print('\nExtracting info from news train ...')
+        for i, line in enumerate(tqdm(fp_train_news)):
             fields = line.strip().split('\t')
-            # vert and subvert are the category and subcategory of the news
-            url, entity_info, keywords, title, subvert, vert = fields
-            entity_info_title = entity_info
+            url = fields[0]
+            try:
+                updated_field = fields[1].replace("'", "\"")
+                entity_info_title = json.loads(updated_field)
+            except json.JSONDecodeError:
+                print(f"Error decoding JSON in train_news_addressa at line {i + 1}: {fields[1]}")
+                continue
             entity_info_abstract = []
-            if embedding_folder is not None:
-                news_feature_dict[url] = (train_sentences_embedding[i], entity_info_title, entity_info_abstract, vert, subvert)
+
+            if os.path.exists(embedding_folder + "train_news_addressa_embeddings.pkl"):
+                news_feature_dict[url] = (
+                train_sentences_embedding[i], entity_info_title, entity_info_abstract, fields[5], fields[4])
             else:
-                news_feature_dict[url] = (title, entity_info_title, entity_info_abstract, vert, subvert)
-    # Load sentence embeddings from file if present
+                news_feature_dict[url] = (fields[3], entity_info_title, entity_info_abstract, fields[5], fields[4])
+
     with open(config['data']['valid_news_addressa'], 'r', encoding='utf-8') as fp_dev_news:
         if os.path.exists(embedding_folder + "valid_news_addressa_embeddings.pkl"):
             valid_sentences_embedding = read_pickle(embedding_folder + "valid_news_addressa_embeddings.pkl")
-        for i, line in enumerate(fp_dev_news):
+
+        print('\nExtracting info from news dev ...')
+        for i, line in enumerate(tqdm(fp_dev_news)):
             fields = line.strip().split('\t')
-            url, entity_info, keywords, title, subvert, vert = fields
-            entity_info_title = entity_info
+            url = fields[0]
+            try:
+                updated_field = fields[1].replace("'", "\"")
+                entity_info_title = json.loads(updated_field)
+            except json.JSONDecodeError:
+                print(f"Error decoding JSON in valid_news_addressa at line {i + 1}: {fields[1]}")
+                continue
             entity_info_abstract = []
-            if embedding_folder is not None:
-                news_feature_dict[url] = (valid_sentences_embedding[i], entity_info_title, entity_info_abstract, vert, subvert)
+
+            if os.path.exists(embedding_folder + "train_news_addressa_embeddings.pkl"):
+                news_feature_dict[url] = (
+                valid_sentences_embedding[i], entity_info_title, entity_info_abstract, fields[5], fields[4])
             else:
-                news_feature_dict[url] = (title, entity_info_title, entity_info_abstract, vert, subvert)
+                news_feature_dict[url] = (fields[3], entity_info_title, entity_info_abstract, fields[5], fields[4])
 
     # deal with doc feature
     entity_type_dict = {}
     entity_type_index = 1
 
-    if embedding_folder is None:
+    if os.path.exists(embedding_folder + "train_news_addressa_embeddings.pkl") or os.path.exists(
+            embedding_folder + "train_news_addressa_embeddings.pkl"):
         model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
-    for i, news in enumerate(news_feature_dict):
+    print('\nBuilding news features ...')
+    for i, news in enumerate(tqdm(news_feature_dict)):
         if embedding_folder is not None:
             sentence_embedding = news_feature_dict[news][0]  # Use the stored sentence embedding
         else:
             sentence_embedding = model.encode(news_feature_dict[news][0])
+
         news_entity_feature_list = []
-        title_entity_json = json.loads(news_feature_dict[news][1])
-        abstract_entity_json = json.loads(news_feature_dict[news][2])
-        news_entity_feature = {}
-        for item in title_entity_json:
-            if item['Type'] not in entity_type_dict:
-                entity_type_dict[item['Type']] = entity_type_index
-                entity_type_index = entity_type_index + 1
-            news_entity_feature[item['WikidataId']] =\
-                (len(item['OccurrenceOffsets']), 1, entity_type_dict[item['Type']]) #entity_freq, entity_position, entity_type
-        for item in abstract_entity_json:
-            if item['WikidataId'] in news_entity_feature:
-                news_entity_feature[item['WikidataId']] =\
-                    (news_entity_feature[item['WikidataId']][0] + len(item['OccurrenceOffsets']), 1, entity_type_dict[item['Type']])
-            else:
-                if item['Type'] not in entity_type_dict:
-                    entity_type_dict[item['Type']] = entity_type_index
-                    entity_type_index = entity_type_index + 1
-                news_entity_feature[item['WikidataId']] =\
-                    (len(item['OccurrenceOffsets']), 2, entity_type_dict[item['Type']])  # entity_freq, entity_position, entity_type
-        for entity in news_entity_feature:
-            if entity in entity2embedd:
-                news_entity_feature_list.append(
-                    [entity2embedd[entity], news_entity_feature[entity][0], news_entity_feature[entity][1], news_entity_feature[entity][2]]
-                )
+        entity_info_title = news_feature_dict[news][1]
+
+        for item in entity_info_title:
+            if item['WikidataId'] in entity2embedd:
+                news_entity_feature_list.append([
+                    entity2embedd[item['WikidataId']],
+                    item['OccurrenceOffsets'],
+                    1,
+                    entity_type_dict.get(item['Type'], 0)
+                ])
+
         news_entity_feature_list.append([0, 0, 0, 0])
+
         if len(news_entity_feature_list) > config['model']['news_entity_num']:
             news_entity_feature_list = news_entity_feature_list[:config['model']['news_entity_num']]
         else:
-            for i in range(len(news_entity_feature_list), config['model']['news_entity_num']):
+            for _ in range(len(news_entity_feature_list), config['model']['news_entity_num']):
                 news_entity_feature_list.append([0, 0, 0, 0])
-        news_feature_list_ins = [[],[],[],[],[]]
+
+        news_feature_list_ins = [[], [], [], [], []]
+
         for i in range(len(news_entity_feature_list)):
             for j in range(4):
                 news_feature_list_ins[j].append(news_entity_feature_list[i][j])
+
         news_feature_list_ins[4] = sentence_embedding
         news_features[news] = news_feature_list_ins
-    news_features["N0"] = [[],[],[],[],[]]
+
+    news_features["N0"] = [[], [], [], [], []]
+
     for i in range(config['model']['news_entity_num']):
         for j in range(4):
             news_features["N0"][j].append(0)
+
     news_features["N0"][4] = np.zeros(config['model']['document_embedding_dim'])
+
     return news_features, 100, 10, 100
 
 
@@ -448,14 +486,16 @@ def get_behavior_train_test(config, train_split_size=0.8):
     return train_adressa_behaviour, test_adressa_behaviour
 
 
+
 def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_behaviour):
     """
     :param train_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (train split)
     :param test_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (test split)
-    :return: two dictionaries with the needed positive lst, negative lst and remaining data
+    :return: two dictionaries with the needed positive lst, negative lst, and remaining data
     """
     negative_num = config['trainer']['train_neg_num']
     train_data = {}
+    train_data['train_urls'] = []
     user_id = []
     news_id = []
     label = []
@@ -493,12 +533,12 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
             for i in range(negative_num):
                 label[-1].append(0)
             label[-1].append(1)
-
-    train_data['item1'] = user_id
-    train_data['item2'] = news_id
-    train_data['label'] = label
+            for url in all_news:
+                if url not in train_data['train_urls'] and url != 'NO':
+                    train_data['train_urls'].append(url)  # Add URL to train_urls list
 
     dev_data = {}
+    dev_data['dev_urls'] = []
     session_id = []
     user_id = []
     news_id = []
@@ -523,6 +563,12 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
             else:
                 news_id.append(newsid)
                 label.append(0.0)
+            if newsid not in dev_data['dev_urls'] and newsid != 'NO':
+                dev_data['dev_urls'].append(newsid)  # Add URL to dev_urls list
+
+    train_data['item1'] = user_id
+    train_data['item2'] = news_id
+    train_data['label'] = label
 
     dev_data['item1'] = user_id
     dev_data['session_id'] = session_id
@@ -531,6 +577,19 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
 
     return train_data, dev_data
 
+def create_train_test_adressa_datasets(config, train_urls, test_urls):
+    # Read the news.tsv file into a dataframe
+    news_df = pd.read_csv(config['data']['data_news_adressa'], sep='\t')
+
+    # Filter rows based on train_urls and test_urls
+    train_df = news_df[news_df['url'].isin(train_urls)]
+    test_df = news_df[news_df['url'].isin(test_urls)]
+
+    # Save train and test dataframes to separate TSV files without the header
+    train_df.to_csv(config['data']['train_news_addressa'], sep='\t', index=False, header=False)
+    test_df.to_csv(config['data']['valid_news_addressa'], sep='\t', index=False, header=False)
+
+    return train_df, test_df
 
 def load_data_mind_adressa(config):
     """
