@@ -45,6 +45,7 @@ model:
 
 trainer:
   movies_adaptation: "False"
+  adressa_adaptation: "False"
   training_type: "single_task" # single_task or multi-task
   task: "user2item" # task should be within: user2item, item2item, vert_classify, pop_predict
   epochs: 10
