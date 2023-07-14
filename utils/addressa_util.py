@@ -261,31 +261,49 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
     return entity_adj, relation_adj
 
 
-def obtain_train_test_movies(train_movies_behaviour, movies_behaviours ):
+def obtain_train_test_adressa(config, train_adressa_behaviour, adressa_behaviours ):
 
     """
 
-    Return two different lists of users ids for the training and validation phase
+    Return two different lists of users ids (url of the news) for the training and validation phase
     
     """
 
 
-    train_movies = []
-    test_movies = []
-    for k,v in movies_behaviours.items():
+    train_news = []
+    test_news = []
+    for k,v in adressa_behaviours.items():
         
         
-        if k.strip() in train_movies_behaviour:
+        if k.strip() in train_adressa_behaviour:
             
             for el in v:
                 
                 if el[1].strip() == 'True':
-                    train_movies.append(el[0])
+                    train_news.append(el[0])
         else:
             for el in v:
                 if el[1].strip() == 'True':
-                    test_movies.append(el[0])
-    return train_movies,test_movies
+                    test_news.append(el[0])
+
+    # check whether train and test news exists and save file if needed
+    if not(os.path.exists('./data/train/adr/adressa_train_news_dataset.tsv') or os.path.exists('./data/valid/adr/adressa_test_news_dataset.tsv')):
+        # Load the new.tsv dataset
+        df = pd.read_csv(config['data']['data_news_addressa'], sep='\t')
+
+        # Filter the dataframe based on training URLs
+        training_df = df[df['url'].isin(train_news)]
+
+        # Filter the dataframe based on test URLs
+        test_df = df[df['url'].isin(test_news)]
+
+        # Save the training dataframe as a TSV file
+        training_df.to_csv('./data/train/adr/adressa_train_news_dataset.tsv', sep='\t', index=False, header=False)
+
+        # Save the test dataframe as a TSV file
+        test_df.to_csv('./data/valid/adr/adressa_test_news_dataset.tsv', sep='\t', index=False, header=False)
+
+    return train_news,test_news
 
 
 def build_news_addressa_features_mind(config, entity2embedd):
@@ -295,7 +313,7 @@ def build_news_addressa_features_mind(config, entity2embedd):
     embedding_folder = config['data']['sentence_embedding_folder']
     # Load sentence embeddings from file if present
     with open(config['data']['train_news_addressa'], 'r', encoding='utf-8') as fp_train_news:
-        if embedding_folder is not None:
+        if os.path.exists(embedding_folder + "train_news_addressa_embeddings.pkl"):
             train_sentences_embedding = read_pickle(embedding_folder + "train_news_addressa_embeddings.pkl")
         for i, line in enumerate(fp_train_news):
             fields = line.strip().split('\t')
@@ -309,7 +327,7 @@ def build_news_addressa_features_mind(config, entity2embedd):
                 news_feature_dict[url] = (title, entity_info_title, entity_info_abstract, vert, subvert)
     # Load sentence embeddings from file if present
     with open(config['data']['valid_news_addressa'], 'r', encoding='utf-8') as fp_dev_news:
-        if embedding_folder is not None:
+        if os.path.exists(embedding_folder + "valid_news_addressa_embeddings.pkl"):
             valid_sentences_embedding = read_pickle(embedding_folder + "valid_news_addressa_embeddings.pkl")
         for i, line in enumerate(fp_dev_news):
             fields = line.strip().split('\t')

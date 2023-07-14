@@ -99,9 +99,16 @@ relation_embeddings =get_addressa_relations_embeddings(config)
 
 print(relation_embeddings)
 
-ad_features, max_entity_freq, max_entity_pos, max_entity_type  = build_news_features_mind(config,ad_entity2embedd)
-entity_adj, relation_adj = addressa_construct_adj_mind(config, ad_entity2embedd, adr_relation2id)
-print(relation_adj)
+# build test and train data
+train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
+
+user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
+
+train_new, test_news = obtain_train_test_adressa(train_adressa_behaviour,config["data"]["train_adressa_behaviour"])
+
+#ad_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features_mind(config,ad_entity2embedd)
+#entity_adj, relation_adj = addressa_construct_adj_mind(config, ad_entity2embedd, adr_relation2id)
+#print(relation_adj)
 
 #adr_behaviours = construct_movies_behaviours(config)
 
