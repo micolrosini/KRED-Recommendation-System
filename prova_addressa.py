@@ -9,15 +9,8 @@ from utils.addressa_util import *
 import argparse
 from train_test import *
 
-# set folder and files path
-path_entity = './data/entities-week.csv'
-path_relation = './data/knowledge_graph_addressa.tsv'
-entity_file= 'entities_embedding'
-relation_file= 'relations_embedding'
-data_path = './data/'
-adj_path = data_path + 'addressa_adj_matrix.txt'
 
-print(f'\n It is installed Pytorch V. {torch.__version__}')
+print(f'\nIt is installed Pytorch V. {torch.__version__}')
 
 parser = argparse.ArgumentParser(description='KRED')
 parser.add_argument('-c', '--config', default="./config.yaml", type=str,
@@ -29,6 +22,14 @@ parser.add_argument('-d', '--device', default=None, type=str,
 
 config = ConfigParser.from_args(parser)
 config['trainer']['adressa_adaptation'] = 'True'
+
+# set folder and files path
+path_entity = config['data']['entities_addressa']
+path_relation = config['data']['relations']
+entity_file= 'entities_embedding'
+relation_file= 'relations_embedding'
+data_path = './data/'
+adj_path = data_path + 'addressa_adj_matrix.txt'
 
 #creating entities and relations dictionary to use while building adjacent matrix
 # Read csv file with entities wikiid
@@ -93,16 +94,18 @@ else:
             if str(element) != '[]':
                 file.write(str(element) + '\n')
 
- # List of embedding vector for each relation
+# List of embedding vector for each relation
 relation_embeddings =get_addressa_relations_embeddings(config)
 
 entity_adj, relation_adj = addressa_construct_adj_mind(config, ad_entity2embedd, adr_relation2id)
 
 # open behaviours and extract urls
 df_beahviours = pd.read_csv(config["data"]["train_adressa_behaviour"], delimiter='\t', header=None)
-# build test and train data
+
+# Build test and train data
 train_adressa_behaviour, test_adressa_behaviour = get_behavior_train_test(config)
 
+# Build user histroy dictionary for both train and test user behaviours
 user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
 
 train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour=train_adressa_behaviour, test_adressa_behaviour=test_adressa_behaviour)
@@ -123,5 +126,13 @@ relation_embeddings = torch.FloatTensor(np.array(relation_embeddings))
 data = [user_history_dict, ad_entity_embedding, relation_embeddings, entity_adj,relation_adj, ad_features,\
 max_entity_freq, max_entity_pos, max_entity_type, train_data, dev_data]
 
+ids_to_not_remove = []
+for el in data[-1]['item1']:
+    if el in data[0].keys():
+        ids_to_not_remove.append(el)
+
+data[-1]['item1'] = ids_to_not_remove
+
+#data = load_data_mind_adressa(config=config)
 # Test single task training for KRED model on Adressa dataset
 single_task_training(config, data)

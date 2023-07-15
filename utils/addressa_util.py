@@ -441,31 +441,47 @@ def build_user_history_adressa(config, train_adressa_behaviour, test_adressa_beh
     """
     :param train_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (train split)
     :param test_adressa_behaviour: list of strings, each row is a line of behaviors.tsv (test split)
-    :return: a dictionary for each users with the value the films that are rated positively
+    :return: a dictionary for each user with the value as the list of permitted URLs
     """
     user_history_dict = {}
+    # load news available to check whether all URLs in behaviors are consistent
+    df_news = pd.read_csv(config['data']['data_news_adressa'], sep='\t')
+    # create a list of news URLs
+    urls_news = df_news['url'].tolist()
 
-    for line in train_adressa_behaviour:
+    print('\nBuilding user train behaviors...')
+    for line in tqdm(train_adressa_behaviour):
         index, user_id, imp_time, history, behavior = line.strip().split('\t')
-        if len(history.split(' ')) >= config['model']['user_his_num']:
-            user_history_dict[user_id + "_train"] = history.split(' ')[:config['model']['user_his_num']]
+        permitted_urls = []
+
+        for news in history.split(' '):
+            if news in urls_news:
+                permitted_urls.append(news)
+
+        # Check the length of the permitted URLs list
+        if len(permitted_urls) >= config['model']['user_his_num']:
+            user_history_dict[user_id + "_train"] = permitted_urls[:config['model']['user_his_num']]
         else:
-            user_history_dict[user_id + "_train"] = history.split(' ')
-            for i in range(config['model']['user_his_num'] - len(history.split(' '))):
-                user_history_dict[user_id + "_train"].append("N0")
+            user_history_dict[user_id + "_train"] = permitted_urls + ["N0"] * (config['model']['user_his_num'] - len(permitted_urls))
             if user_history_dict[user_id + "_train"][0] == '':
-                user_history_dict[user_id + "_train"][0] = 'N0'
+                user_history_dict[user_id + "_train"][0] = "N0"
 
-    for line in test_adressa_behaviour:
+    print('\nBuilding user test behaviors...')
+    for line in tqdm(test_adressa_behaviour):
         index, user_id, imp_time, history, behavior = line.strip().split('\t')
-        if len(history.split(' ')) >= config['model']['user_his_num']:
-            user_history_dict[user_id + "_dev"] = history.split(' ')[:config['model']['user_his_num']]
+        permitted_urls = []
+
+        for news in history.split(' '):
+            if news in urls_news:
+                permitted_urls.append(news)
+
+        # Check the length of the permitted URLs list
+        if len(permitted_urls) >= config['model']['user_his_num']:
+            user_history_dict[user_id + "_dev"] = permitted_urls[:config['model']['user_his_num']]
         else:
-            user_history_dict[user_id + "_dev"] = history.split(' ')
-            for i in range(config['model']['user_his_num'] - len(history.split(' '))):
-                user_history_dict[user_id + "_dev"].append("N0")
+            user_history_dict[user_id + "_dev"] = permitted_urls + ["N0"] * (config['model']['user_his_num'] - len(permitted_urls))
             if user_history_dict[user_id + "_dev"][0] == '':
-                user_history_dict[user_id + "_dev"][0] = 'N0'
+                user_history_dict[user_id + "_dev"][0] = "N0"
 
     return user_history_dict
 
@@ -503,7 +519,8 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
     news_id = []
     label = []
 
-    for line in train_adressa_behaviour:
+    print('\n Building user to item dictionaries ...')
+    for line in tqdm(train_adressa_behaviour):
         index, userid, imp_time, history, behavior = line.strip().split('\t')
 
         behavior = behavior.split(' ')
@@ -537,7 +554,7 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
                 label[-1].append(0)
             label[-1].append(1)
             for url in all_news:
-                if url not in train_data['train_urls'] and url != 'NO':
+                if url not in train_data['train_urls']:
                     train_data['train_urls'].append(url)  # Add URL to train_urls list
 
     dev_data = {}
@@ -547,7 +564,7 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
     news_id = []
     label = []
 
-    for line in test_adressa_behaviour:
+    for line in tqdm(test_adressa_behaviour):
         index, userid, imp_time, history, behavior = line.strip().split('\t')
         behavior = behavior.split(' ')
         for news in behavior:
@@ -566,7 +583,7 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
             else:
                 news_id.append(newsid)
                 label.append(0.0)
-            if newsid not in dev_data['dev_urls'] and newsid != 'NO':
+            if newsid not in dev_data['dev_urls']:
                 dev_data['dev_urls'].append(newsid)  # Add URL to dev_urls list
 
     train_data['item1'] = user_id
@@ -581,6 +598,13 @@ def get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_beh
     return train_data, dev_data
 
 def create_train_test_adressa_datasets(config, train_urls, test_urls):
+
+    """
+       :param config: configuration file
+       :param train_urls: list of training URLs
+       :param test_urls: list of testing URLs
+       :return: None
+       """
     # Read the news.tsv file into a dataframe
     news_df = pd.read_csv(config['data']['data_news_adressa'], sep='\t')
 
@@ -599,19 +623,21 @@ def load_data_mind_adressa(config):
     :return data: list with all the final data needed to run the model
     """
     # Take all the wikidata id of the news entities
-    entities = entities_addressa(config)
+    # Read csv file with entities wikiid
+    df_entities = pd.read_csv(config['data']['entities_addressa'], index_col=False)
+    # List of entities
+    entities = df_entities['wikiid'].tolist()
 
     # Creating a dictionary with key the wikidata id and value the corresponding id, the id is a number that goes from 1 to the lenght of "movies_entities"
     entity2id = entity_to_id_addressa(entities)
 
     # Creating the list of vector which will contain the list of the entities' embeddings
-    entity_embedding = [np.zeros(config["model"]["entity_embedding_dim"])]  # array with 100 zeros
+    #entity_embedding = [np.zeros(config["model"]["entity_embedding_dim"])]  # array with 100 zeros
 
     # This will be a dictionary with key the wikidata id and value the index in the 'movies_entity_embedding' which corresponds to the relative embedding
     entity2embedd = {}
 
-    entity2embedd, entity_embedding = get_addressa_entities_embedding(config, entity_embedding,
-                                                                                  entity2embedd)
+    entity2embedd, entity_embedding = get_addressa_entities_embedding(config, entity2embedd)
 
     # Obtaining a dictionary with wikidata id of all the relations as key and the id as values.
     relations = relation2id_addressa(config)
@@ -636,6 +662,15 @@ def load_data_mind_adressa(config):
     user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour)
 
     train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour, test_adressa_behaviour)
+
+    # Create news train and test dataset if needed
+    train_news = train_data['train_urls']
+    test_news = dev_data['dev_urls']
+
+    if os.path.exists(config['data']['valid_news_addressa']) and os.path.exists(config['data']['train_news_addressa']):
+        print('\nNews Adressa test and train tsv already exist\n')
+    else:
+        _, _ = create_train_test_adressa_datasets(config, train_urls=train_news, test_urls=test_news)
 
     for i, v in enumerate(entity_embedding):
         emb_adr = []
