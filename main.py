@@ -6,6 +6,9 @@ from parse_config import ConfigParser
 
 import os
 
+# WARNING: Deprecated file, this file has not been removed to prevent dependency issues,
+#           but is not to be executed. Refer to the guide in README.md for the instructions
+
 def main(config):
     #data = load_data_mind(config)
     with open("./data/data_mind_small.pkl", 'rb') as f:
