@@ -56,6 +56,8 @@ $ python movies_rec_training.py
 $ python adressa_rec_training.py
 # This will run the KRED model variation for user2item single-task training on data enrichment with user reading time
 
+# Remark: to run the Adressa extension it's required to manually create an empty folder "adr" in ./data/train/adr and ./data/valid/adr
+
 # Remark: The Adressa dataset needs to undergo a heavy preprocessing phase, the preprocessing file is Adressa_Preprocessing.py
 #         The transformations applied in this script can be executed locally to generate the needed files
 #          or on Google Colab as explained later
