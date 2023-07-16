@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import random
 from time import time
-from utils.addressa_util import *
+from utils.adressa_util_prova import *
 import argparse
 from train_test import *
 
