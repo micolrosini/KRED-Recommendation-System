@@ -30,4 +30,13 @@ if not os.path.isfile("./data/mind_reader_dataset/movies.pkl"):
 else: 
     data = read_pickle("./data/mind_reader_dataset/movies.pkl")
 
+ids_to_not_remove = []
+for el in data[-1]['item1']:
+        if el in data[0].keys():
+            ids_to_not_remove.append(el)
+
+data[-1]['item1'] = ids_to_not_remove
+
+
+
 single_task_training(config, data)
