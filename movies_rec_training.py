@@ -37,6 +37,49 @@ for el in data[-1]['item1']:
 
 data[-1]['item1'] = ids_to_not_remove
 
+ENABLE_GRID_SEARCH = True
 
+if ENABLE_GRID_SEARCH:
 
-single_task_training(config, data)
+    print("Starting grid search for hyper-parameters optimization:")
+
+    num_epochs_values = [5, 7, 10]
+    batch_sizes_values = [64, 128]
+    learning_rates_values = [0.00001, 0.00002, 0.00005]
+
+    grid_search_results = list()
+
+    for e in num_epochs_values:
+        for b in batch_sizes_values:
+            for lr in learning_rates_values:
+                print('\n')
+                print("Testing the following configuration:")
+                print(f"Number of epochs: {e}")
+                print(f"Batch size: {b}")
+                print(f"Learning rate: {lr}")
+                print('\n')
+
+                config["trainer"]["epochs"] = e
+                config["data_loader"]["batch_size"] = b
+                config["optimizer"]["lr"] = lr
+
+                single_task_training(config, data)
+                test_data = data[-1]
+                auc_score, ndcg_score = testing_movies(test_data, config)
+
+                res = dict()
+                res['epochs'] = e
+                res['batch_size'] = b
+                res['learning_rate'] = lr
+                res['auc_score'] = auc_score
+                res['ndcg_score'] = ndcg_score
+
+                grid_search_results.append(res)
+
+    for r in grid_search_results:
+        print(r)
+
+else:
+    single_task_training(config, data)
+    test_data = data[-1]
+    auc_score, ndcg_score = testing_movies(test_data, config)

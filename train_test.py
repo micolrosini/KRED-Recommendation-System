@@ -194,3 +194,34 @@ def testing(test_data, config):
         y_pred.extend(out)
     truth = test_data['label']
     score = evaluate(y_pred, truth, test_data, config['trainer']['task'])
+
+
+def testing_movies(test_data, config):
+    print("Model testing:")
+    if config['trainer']['task'] == "user2item":
+        task_index = 0
+    elif config['trainer']['task'] == "item2item":
+        task_index = 4
+    elif config['trainer']['task'] == "vert_classify":
+        task_index = 1
+    elif config['trainer']['task'] == "pop_predict":
+        task_index = 3
+    model = torch.load('./out/saved/models/KRED/checkpoint.pt')
+    model.eval()
+    y_pred = []
+    start_list = list(range(0, len(test_data['label']), config['data_loader']['batch_size']))
+    for start in start_list:
+        if start + config['data_loader']['batch_size'] <= len(test_data['label']):
+            end = start + config['data_loader']['batch_size']
+        else:
+            end = len(test_data['label'])
+        out = model(test_data['item1'][start:end], test_data['item2'][start:end],
+        config['data_loader']['batch_size'])[
+              task_index].cpu().data.numpy()
+        y_pred.extend(out)
+    truth = test_data['label']
+
+    auc_score, ndcg_score = evaluate_movies(y_pred, truth, test_data, config['trainer']['task'])
+
+    return auc_score, ndcg_score
+
