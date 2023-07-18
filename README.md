@@ -91,8 +91,9 @@ The code has been tested running under Python 3.6.10, with the following package
 
 ## Extensions:
 Two extensions have been explored and developed for this project:
-- Domain Adaptation --> Shifting recommendation domain to movies recommendation
+- Domain Adaptation --> Shifting recommendation domain from online news to movies recommendation
 - Data Enrichment --> Introduction of news articles reading time to better model the user preferences
+
 A detailed description of the experiments and extensions is contained in the *Paper.pdf* report.
 
 ## Developers:
