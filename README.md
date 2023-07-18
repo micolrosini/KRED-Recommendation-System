@@ -65,6 +65,8 @@ $ python adressa_rec_training.py
 # Remark: The Movies dataset also undergoes various transformations in the preprocessing phase, the preprocessing file is data_movies_preprocessing.py
 ```
 
+Both the preprocessing scripts to transform the datasets used in the extensions are stored in the folder *Preprocessing scripts*.
+
 Alternatively, it is also possible to open *KRED_notebook.ipynb* inside *Google Colab*, the notebook clones the latest version of this repository and loads the datasets into the proper folders from Google Drive (it is suggested to contact our team to get access to the Drive credentials).
 
 On the Google Colab Notebook is easier to run the Adressa preprocessing since it's been natively developed in the same environment and commented in the notebook and doesn't require modifications to generate the model input files. The base model and extensions can be run in an analogous way:
