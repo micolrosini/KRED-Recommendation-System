@@ -1,5 +1,5 @@
-from KRED_adressa import KREDModel
-from KRED_adressa import Softmax_BCELoss
+from model.KRED_adressa import KREDModel
+from model.KRED_adressa import Softmax_BCELoss
 from torch import optim, nn
 from trainer.trainer import Trainer
 from torch.utils.data import Dataset, DataLoader, RandomSampler
