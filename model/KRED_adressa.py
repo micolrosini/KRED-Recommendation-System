@@ -17,10 +17,10 @@ class Softmax_BCELoss(nn.Module):
         loss = self.bceloss(predict, truth)
         return loss
 
-class KREDModel_adr(nn.Module):
+class KREDModel(nn.Module):
     def __init__(self, config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, adj_entity,
                  adj_relation, entity_num, position_num, type_num):
-        super(KREDModel_adr, self).__init__()
+        super(KREDModel, self).__init__()
         self.config = config
         self.user_history_dict = user_history_dict
         self.doc_feature_dict = doc_feature_dict
