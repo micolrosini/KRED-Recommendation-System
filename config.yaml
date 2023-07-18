@@ -65,24 +65,3 @@ optimizer:
   weight_decay: 0.000001
   amsgrad: true
 
-
-
-trainer:
-  movies_adaptation: "False"
-  adressa_adaptation: "False"
-  training_type: "single_task" # single_task or multi-task
-  task: "user2item" # task should be within: user2item, item2item, vert_classify, pop_predict
-  epochs: 10
-  smooth_lamda: 10
-  train_neg_num: 4
-  save_dir: "./out/saved/"
-  save_period: 1
-  early_stop: 3
-  monitor: "val_auc"
-  verbosity: 2
-
-optimizer:
-  type: "Adam"
-  lr: 0.00002
-  weight_decay: 0.000001
-  amsgrad: true
