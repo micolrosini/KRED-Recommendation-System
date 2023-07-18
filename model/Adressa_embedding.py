@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from model.KGAT import KGAT
+from model.KGAT_adressa import KGAT
 import numpy as np
 
 
