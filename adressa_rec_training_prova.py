@@ -138,4 +138,4 @@ data[-1]['item1'] = ids_to_not_remove
 
 #data = load_data_mind_adressa(config=config)
 # Test single task training for KRED model on Adressa dataset
-single_task_training_adressa(config, data)
+single_task_training(config, data)
