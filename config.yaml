@@ -1,9 +1,9 @@
 name: "KRED"
 n_gpu: 1
 data_loader:
-    batch_size: 64
-    shuffle: true
-    num_workers: 1
+  batch_size: 64
+  shuffle: true
+  num_workers: 1
 
 data:
   train_news: "./data/train/news.tsv"
@@ -15,6 +15,7 @@ data:
   relation_embedding: "./data/kg/kg/relation2vecd100.vec"
   entity_index: "./data/kg/kg/entity2id.txt"
   relation_index: "./data/kg/kg/relation2id.txt"
+  num_entity_embedding: 33684
   sentence_embedding_folder: "./data/sentence_embedding/"
   train_movies: "./data/mind_reader_dataset/entity2label_movies.txt"
   knowledge_graph_movies: "./data/mind_reader_dataset/triple2id_movies.txt"
@@ -25,6 +26,7 @@ data:
   valid_news_addressa: './data/valid/adr/adressa_test_news_dataset.tsv'
   train_news_addressa: "./data/train/adr/adressa_train_news_dataset.tsv"
   entities_addressa: './data/entities-week.csv'
+  entity2id_adressa: './data/entity2id_adressa.txt'
   knowledge_graph_addressa: "./data/knowledge_graph_addressa.tsv"
   relations: "./data/knowledge_graph_addressa.tsv"
   addressa_entity_embedding: './data/entities_embedding.vec'
@@ -41,6 +43,28 @@ model:
   entity_embedding_dim: 100
   layer_dim: 128
   user_his_num: 20
+
+
+trainer:
+  movies_adaptation: "False"
+  adressa_adaptation: "False"
+  training_type: "single_task" # single_task or multi-task
+  task: "user2item" # task should be within: user2item, item2item, vert_classify, pop_predict
+  epochs: 10
+  smooth_lamda: 10
+  train_neg_num: 4
+  save_dir: "./out/saved/"
+  save_period: 1
+  early_stop: 3
+  monitor: "val_auc"
+  verbosity: 2
+
+optimizer:
+  type: "Adam"
+  lr: 0.00002
+  weight_decay: 0.000001
+  amsgrad: true
+
 
 
 trainer:
