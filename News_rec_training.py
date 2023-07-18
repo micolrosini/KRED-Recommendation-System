@@ -61,6 +61,7 @@ config['data_loader']['batch_size'] = batch_size
 config['trainer']['training_type'] = train_type
 config['trainer']['task'] = task
 config['trainer']['save_period'] = epochs/2
+config['model']['document_embedding_dim'] = 768
 # The following parameters define which of the extensions are used, 
 # by setting them to False the original KRED model is executed 
 if not os.path.isfile(f"{config['data']['sentence_embedding_folder']}/train_news_embeddings.pkl"):
@@ -69,16 +70,16 @@ if not os.path.isfile(f"{config['data']['sentence_embedding_folder']}/train_news
 if not os.path.isfile(f"{config['data']['sentence_embedding_folder']}/valid_news_embeddings.pkl"):
   write_embedding_news("./data/valid", config["data"]["sentence_embedding_folder"])
 
-
-
 if not os.path.isfile(f"{data_path}/data_mind.pkl"):
   data = load_data_mind(config, config['data']['sentence_embedding_folder'])
   write_data_mind(config, data_path)
-else :   
+else:
   data = read_pickle(f"{data_path}/data_mind.pkl")
 
 
 test_data = data[-1]
-data = limit_user2item_validation_data(data, 10000)
+data = limit_user2item_validation_data(data, 10000)  # limit valid set size at valid phase (full set at testing phase)
+
+
 print("Data loaded, ready for training")
 single_task_training(config, data)  # user2item
