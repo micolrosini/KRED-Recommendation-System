@@ -1,7 +1,21 @@
+""" 
+#####################################################################################################################
+# This file contains the code for the preprocessing of the MindReader dataset (Domain Adaptation extension of KRED) #
+#                                                                                                                   #
+# The code presents a set of functions used to transform the movies dataset in order to obtain suitable inputs      #
+#      for the model of the Domain Adaptation to Movies Recommendation extension of KRED                            #
+#                                                                                                                   #
+# Remark: The code present in this file has been delivered as part of the project, but the results obtained by      #
+#           this preprocessing have been saved on our team's Google Drive and can be used to directly run the       #
+#           model. The purpose of this code, therefore, is to enhance the reproducibility of the project            #
+#                                                                                                                   #
+#####################################################################################################################
+"""
+
 import csv
 
-# Use this function if you want to obtain from the file entities.csv a file with the entity id, the label and the description
 
+# Use this function if you want to obtain from the file entities.csv a file with the entity id, the label and the description
 def movies_entities_info():
 
       input_file = 'data/mind_reader_dataset/entities.csv'
@@ -32,8 +46,8 @@ def movies_entities_info():
                   txt_file.write(row_text)
                   txt_file.write("\n")
 
-# Use this function to obtain from the file ratings a file of the behaviour of each user id
 
+# Use this function to obtain from the file ratings a file of the behaviour of each user id
 def creating_behaviours_movies():
     input_file = 'data/mind_reader_dataset/ratings-2.csv'
     output_file = 'data/mind_reader_dataset/behaviours_movies.txt'
@@ -61,8 +75,7 @@ def creating_behaviours_movies():
             txt_file.write("\n")
      
 
- # Use this function if you want to obtain a knowledge graph with the wikidata ids from the file triple.csv of the dataset_movies
-
+# Use this function if you want to obtain a knowledge graph with the wikidata ids from the file triple.csv of the dataset_movies
 def triple_to_id():
       input_file = 'data/mind_reader_dataset/triples.csv'
       output_file = 'data/mind_reader_dataset/triple2id1_movies.txt'
@@ -152,8 +165,8 @@ def triple_to_id():
                         txt_file.write(row_text)
                         txt_file.write("\n")
 
-# Function to save in a file txt the movies wikidata and all the entities that are connected to the movies, with the corresponding relation
 
+# Function to save in a txt file the movies wikidata and all the entities that are connected to the movies, with the corresponding relation
 def link_entities_to_movies(train_list_movies, test_list_movies,movies_relation2id ,config):
     train_movies_with_features = {}
     test_movies_with_features = {}
@@ -180,5 +193,3 @@ def link_entities_to_movies(train_list_movies, test_list_movies,movies_relation2
             txt_file1.write(f"{key}: {value}\n")
         for key, value in train_movies_with_features.items():
             txt_file2.write(f"{key}: {value}\n")
-      
-    
