@@ -76,10 +76,10 @@ if not os.path.isfile(f"{data_path}/data_mind.pkl"):
 else:
   data = read_pickle(f"{data_path}/data_mind.pkl")
 
-
-test_data = data[-1]
 data = limit_user2item_validation_data(data, 10000)  # limit valid set size at valid phase (full set at testing phase)
-
-
+test_data = data[-1]
 print("Data loaded, ready for training")
+
 single_task_training(config, data)  # user2item
+
+auc_score, ndcg_score = testing_base_model(test_data, config)
