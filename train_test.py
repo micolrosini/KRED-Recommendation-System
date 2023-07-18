@@ -169,57 +169,6 @@ def single_task_training(config, data):
     trainer = Trainer(config, model, criterion, optimizer, device, train_data_loader, data[-1])
     trainer.train()
 
-def single_task_training_adressa(config, data):
-    user_history_dict, entity_embedding, relation_embedding, entity_adj, relation_adj, doc_feature_dict, entity_num, position_num, type_num, train_data, test_data = data
-
-    if config['trainer']['task'] == "user2item":
-        train_data_u2i = NewsDataset(train_data)
-        train_sampler_u2i = RandomSampler(train_data_u2i)
-        train_dataloader_u2i = DataLoader(train_data_u2i, sampler=train_sampler_u2i,
-                                          batch_size=config['data_loader']['batch_size'],
-                                          collate_fn=my_collate_fn, pin_memory=False)
-        criterion = Softmax_BCELoss(config)
-        train_data_loader = train_dataloader_u2i
-    elif config['trainer']['task'] == "item2item":
-        train_data_i2i = NewsDataset(train_data)
-        train_sampler_i2i = RandomSampler(train_data_i2i)
-        train_dataloader_i2i = DataLoader(train_data_i2i, sampler=train_sampler_i2i,
-                                          batch_size=config['data_loader']['batch_size'],
-                                          pin_memory=False)
-        criterion = Softmax_BCELoss(config)
-        train_data_loader = train_dataloader_i2i
-    elif config['trainer']['task'] == "vert_classify":
-        train_data_vert = NewsDataset(train_data)
-        train_sampler_vert = RandomSampler(train_data_vert)
-        train_dataloader_vert = DataLoader(train_data_vert, sampler=train_sampler_vert,
-                                           batch_size=config['data_loader']['batch_size'],
-                                           pin_memory=False)
-        criterion = nn.CrossEntropyLoss()
-        train_data_loader = train_dataloader_vert
-    elif config['trainer']['task'] == "pop_predict":
-        train_data_pop = NewsDataset(train_data)
-        train_sampler_pop = RandomSampler(train_data_pop)
-        train_dataloader_pop = DataLoader(train_data_pop, sampler=train_sampler_pop,
-                                          batch_size=config['data_loader']['batch_size'],
-                                          pin_memory=False)
-        criterion = nn.CrossEntropyLoss()
-        train_data_loader = train_dataloader_pop
-    else:
-        print("Error: task name error.")
-
-    if config['trainer']['adressa_adaptation']:
-        device, deviceids = prepare_device(config['n_gpu'])
-    else:
-        device = 'mps'
-
-    model = KREDModel_adr(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
-                      relation_adj, entity_num, position_num, type_num).to(device)
-
-    optimizer = optim.Adam(model.parameters(), lr=config['optimizer']['lr'], weight_decay=0)
-
-    trainer = Trainer(config, model, criterion, optimizer, device, train_data_loader, data[-1])
-    trainer.train()
-
 
 def testing(test_data, config):
     if config['trainer']['task'] == "user2item":
