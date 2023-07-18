@@ -212,7 +212,7 @@ def single_task_training_adressa(config, data):
     else:
         device = 'mps'
 
-    model = KREDModel(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
+    model = KREDModel_adr(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
                       relation_adj, entity_num, position_num, type_num).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=config['optimizer']['lr'], weight_decay=0)
