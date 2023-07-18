@@ -7,7 +7,7 @@ import random
 from time import time
 from utils.adressa_util_prova import *
 import argparse
-from train_test import *
+from train_test_adressa import *
 
 
 print(f'\nIt is installed Pytorch V. {torch.__version__}')
