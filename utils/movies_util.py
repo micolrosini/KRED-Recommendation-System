@@ -424,7 +424,7 @@ def get_movies_user2item_data(config,movies_behaviours, train_movies_behaviour,t
             
 
     dev_data = {}
-    session_id = [np.arange(1,len(test_movies_behaviour))]
+    session_id = np.arange(1, len(test_movies_behaviour))
     user_ids = []
     movies_id = []
     label = []

@@ -104,3 +104,38 @@ def evaluate(y_pred, truth, test_data, task):
     else:
         print("task error")
         return 0
+
+
+def evaluate_movies(y_pred, truth, test_data, task):
+    if task == "user2item":
+        score = roc_auc_score(truth, y_pred)
+        sess_id = test_data['session_id']
+
+        if len(sess_id) != len(truth):
+            # sess_id = np.arange(1, len(truth)+1)
+            sess_id = np.ones(len(truth), dtype=int)  # users do not repeat themselves, not more than one user per session
+
+        ndcg = []
+        truth_i = []
+        pred_i = []
+        for i in range(len(truth)):
+            truth_i.append(truth[i])
+            pred_i.append(y_pred[i])
+            if i + 1 == len(truth):
+                ndcg.append(cal_ndcg_float(truth_i, pred_i, 10))
+                truth_i = []
+                pred_i = []
+            elif sess_id[i] != sess_id[i + 1]:
+                ndcg.append(cal_ndcg_float(truth_i, pred_i, 10))
+                truth_i = []
+                pred_i = []
+        ndcg = np.mean(np.array(ndcg))
+        print("auc score:" + str(score))
+        print("ndcg score:" + str(ndcg))
+        auc_score = score
+        ndcg_score = ndcg
+        return auc_score, ndcg_score
+
+    else:
+        print("task error")
+        return 0, 0
