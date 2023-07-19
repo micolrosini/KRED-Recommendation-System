@@ -197,6 +197,14 @@ def testing(test_data, config):
 
 
 def testing_base_model(test_data, config):
+    """
+    :param test_data: test dataset to evaluate the model
+    :param config: configuration settings
+    :return auc_score, ndcg_score: the two scores selected for performance evaluation
+
+    Performs testing using the model in evaluation mode on the test dataset
+
+    """
     print("Model testing:")
     if config['trainer']['task'] == "user2item":
         task_index = 0
@@ -225,6 +233,14 @@ def testing_base_model(test_data, config):
 
 
 def testing_movies(test_data, config):
+    """
+        :param test_data: test dataset to evaluate the model
+        :param config: configuration settings
+        :return auc_score, ndcg_score: the two scores selected for performance evaluation
+
+        Performs testing using the model in evaluation mode on the test dataset
+
+    """
     print("Model testing:")
     if config['trainer']['task'] == "user2item":
         task_index = 0
