@@ -23,6 +23,7 @@ class KGAT(BaseModel):
 
     def get_neighbors(self, entities):
         number_of_entities = self.entity_embedding.shape[0]
+        print(f'\nNumber of entities: {number_of_entities}')
         neighbor_entities = []
         neighbor_relations = []
         for entity_batch in entities:
@@ -48,7 +49,7 @@ class KGAT(BaseModel):
                     for entity_i in entity:
                         entity_adj_list = self.adj_entity[entity_i]
                         relation_adj_list = self.adj_relation[entity_i]
-                        # Some entities that are present in neighbor_entities does not exist in the embedding
+                        # Some entities that are present in neighbor_entities do not exist in the embedding
                         for index, (entity_i, relation_i) in enumerate(zip(entity_adj_list, relation_adj_list)):
                             if entity_i > number_of_entities:
                                 entity_adj_list.pop(index)
@@ -58,6 +59,10 @@ class KGAT(BaseModel):
 
                         neighbor_entities[-1][-1].append(entity_adj_list)
                         neighbor_relations[-1][-1].append(relation_adj_list)
+
+        # Print the shapes of neighbor_entities and neighbor_relations
+        print('Neighbor Entities Shape:', torch.tensor(neighbor_entities).shape)
+        print('Neighbor Relations Shape:', torch.tensor(neighbor_relations).shape)
 
         return neighbor_entities, neighbor_relations
 
