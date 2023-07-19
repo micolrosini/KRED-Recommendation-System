@@ -1,6 +1,6 @@
 """
 ########################################################################################################################
-This file is for the execution of the Data Enrichment to Adressa News extension of the KRED model
+This file is for the execution of the Data Enrichment with News Reading Time extension of the KRED model
 
 The model is trained on the Adressa dataset to perform a user2item recommendation task on norwegian news articles
 
@@ -8,21 +8,24 @@ The macro-steps performed are the following:
 1. Environment setup
     - Import libraries
     - Load config.yaml file
+    - Define input data paths
 2. Data preparation
     - Load existing files
-    - Extracting existing enbeddings
+    - Extracting existing embeddings
     - Build user history and behaviors
     - Building adjacency matrix
     - Fix a "missing keys" problem of the dataset
 3. Model training and testing
     - Selection between:
         * single model training and testing with hyper-parameters specified in config.yaml
+        * grid search on a (small) grid of hyper-parameters
 ########################################################################################################################
 """
 """
 1. Environment setup
     - Import libraries
     - Load config.yaml file
+    - Define input data paths
 """
 from parse_config import ConfigParser
 import torch
@@ -47,7 +50,13 @@ parser.add_argument('-d', '--device', default=None, type=str,
                     help='indices of GPUs to enable (default: all)')
 
 config = ConfigParser.from_args(parser)
+
+# The following parameters define which of the extensions are used,
+#   by setting them to False the original KRED model is executed
 config['trainer']['adressa_adaptation'] = 'True'
+config['trainer']['movies_adaptation'] = 'False'
+
+config['model']['document_embedding_dim'] = 768
 
 # set folder and files path
 path_entity = config['data']['entities_addressa']
@@ -60,14 +69,14 @@ adj_path = data_path + 'addressa_adj_matrix.txt'
 """
 2. Data preparation
     - Load existing files
-    - Extracting existing enbeddings
+    - Extracting existing embeddings
     - Build user history and behaviors
     - Building adjacency matrix
     - Fix a "missing keys" problem of the dataset
 """
 
 # Creating a dictionary with key the wikidata id and value the corresponding id,
-# the id is a number that goes from 1 to the lenght of "entities"\  \
+# the id is a number that goes from 1 to the length of "entities"\  \
 print(config['data']['entity2id_adressa'])
 if os.path.exists(config['data']['entity2id_adressa']):
     print('Dictionary mapping entities alredy exist.')
@@ -93,10 +102,10 @@ relations_dict = build_dictionary_from_list(relations_adr)
 # Obtaining a dictionary with wikidata id of all the relations as key and the id as values.
 relations = relation2id_addressa(config)
 
-# list of all the relations that are in the addressa dataset
+# List of all the relations that are in the Adressa dataset
 adr_relations = get_addressa_relations(config)
 
-# dictionary with key the wikidata id of the relations and index the corresponding index of the news dataset
+# Dictionary with key the wikidata id of the relations and index the corresponding index of the news dataset
 adr_relation2id = {}
 for adr_r in adr_relations:
     adr_relation2id[adr_r] = relations[adr_r]
@@ -129,7 +138,7 @@ else:
                 file.write(str(element) + '\n')
 
 # List of embedding vector for each relation
-relation_embeddings =get_addressa_relations_embeddings(config)
+relation_embeddings = get_addressa_relations_embeddings(config)
 
 entity_adj, relation_adj = addressa_construct_adj(config, ad_entity2embedd, adr_relation2id)
 
@@ -168,14 +177,59 @@ for el in data[-1]['item1']:
 
 data[-1]['item1'] = ids_to_not_remove
 
+test_data = data[-1]
+print("Data loaded - ready for training")
+
 """
 3. Model training and testing
     - Selection between:
         * single model training and testing with hyper-parameters specified in config.yaml
+        * grid search on a (small) grid of hyper-parameters
 """
 
-# Test single task training for KRED model on Adressa dataset
-single_task_training(config, data)
-# Test on validation data
-test_data = data[-1]
-auc_score, ndcg_score = testing(test_data, config)
+ENABLE_GRID_SEARCH = True
+
+if ENABLE_GRID_SEARCH:
+
+    print("Starting grid search for hyper-parameters optimization:")
+
+    num_epochs_values = [5]
+    batch_sizes_values = [128, 64]
+    learning_rates_values = [0.00002, 0.00005]
+
+    grid_search_results = list()
+
+    for e in num_epochs_values:
+        for b in batch_sizes_values:
+            for lr in learning_rates_values:
+                print('\n')
+                print("Testing the following configuration:")
+                print(f"Number of epochs: {e}")
+                print(f"Batch size: {b}")
+                print(f"Learning rate: {lr}")
+                print('\n')
+
+                config["trainer"]["epochs"] = e
+                config["data_loader"]["batch_size"] = b
+                config["optimizer"]["lr"] = lr
+
+                single_task_training(config, data)  # train a new model with selected hyper-params (user2item)
+                auc_score, ndcg_score = testing_adressa(test_data, config)   # test model gets performance scores
+
+                res = dict()
+                res['epochs'] = e
+                res['batch_size'] = b
+                res['learning_rate'] = lr
+                res['auc_score'] = auc_score
+                res['ndcg_score'] = ndcg_score
+
+                grid_search_results.append(res)
+
+    for r in grid_search_results:
+        print(r)
+
+else:
+    # Test single task training for KRED model on Adressa dataset
+    single_task_training(config, data)  # user2item
+    # Test on validation data
+    auc_score, ndcg_score = testing_adressa(test_data, config)
