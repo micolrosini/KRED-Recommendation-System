@@ -5,7 +5,7 @@ from base.base_model import BaseModel
 
 class KGAT(BaseModel):
 
-    def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation):
+   def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation):
         super(KGAT, self).__init__()
         self.config = config
         self.doc_feature_dict = doc_feature_dict
@@ -129,28 +129,22 @@ class KGAT(BaseModel):
                         i.insert(index, 0)
         return entity_ids
 
-    def forward(self, entity_ids):
+  def forward(self, entity_ids):
         entity_ids = self.entity_ids_clearner(entity_ids)
-        # neighbor_entities, neighbor_relations = self.get_neighbors(entity_ids)
-        # Removed not present id
-        # neighbor_entities_tensor = torch.tensor(neighbor_entities).cuda()
-        # filter_mask = (neighbor_entities_tensor < 3241390).cuda()
-        # neighbor_entities_tensor[~filter_mask] = 0
-        # Removed not present id
-        # entity_ids_tensor = torch.tensor(entity_ids).cuda()
-        # filter_mask = (entity_ids_tensor < 3241390).cuda()
-        # entity_ids_tensor[~filter_mask] = 0
-        # entity_ids_tensor = entity_ids_tensor.cuda()
-
+        
         neighbor_entities, neighbor_relations = self.get_neighbors(entity_ids)
-        # Some entity do not have embeddings
-        # print(torch.tensor(entity_ids).max(), 'max1')
-        # print(torch.tensor(neighbor_entities).max(), 'max12')
-
+        
         entity_embedding_lookup = nn.Embedding.from_pretrained(self.entity_embedding.cuda())
         relation_embedding_lookup = nn.Embedding.from_pretrained(self.relation_embedding.cuda())
-        neighbor_entity_embedding = entity_embedding_lookup(torch.tensor(neighbor_entities).cuda())
-        neighbor_relation_embedding = relation_embedding_lookup(torch.tensor(neighbor_relations).cuda())
+        
+        # Convert neighbor_entities and neighbor_relations to tensors with appropriate shapes
+        neighbor_entities_tensor = torch.tensor(neighbor_entities).cuda()
+        neighbor_relations_tensor = torch.tensor(neighbor_relations).cuda()
+        
+        # Lookup embeddings for neighbor entities and relations
+        neighbor_entity_embedding = entity_embedding_lookup(neighbor_entities_tensor)
+        neighbor_relation_embedding = relation_embedding_lookup(neighbor_relations_tensor)
+
         entity_embedding = entity_embedding_lookup(torch.tensor(entity_ids).cuda())
 
         if len(entity_embedding.shape) == 3:
