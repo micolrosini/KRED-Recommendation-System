@@ -132,6 +132,12 @@ class KGAT(BaseModel):
     def forward(self, entity_ids):
         entity_ids = self.entity_ids_clearner(entity_ids)
 
+        # Pad neighbor entities and relations to the same length
+        max_neighbors = max(len(neighbors) for batch in entity_ids for neighbors in batch)
+        for batch in entity_ids:
+            for neighbors in batch:
+                neighbors.extend([0] * (max_neighbors - len(neighbors)))
+
         neighbor_entities, neighbor_relations = self.get_neighbors(entity_ids)
 
         entity_embedding_lookup = nn.Embedding.from_pretrained(self.entity_embedding.cuda())
