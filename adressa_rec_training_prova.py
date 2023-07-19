@@ -139,3 +139,6 @@ data[-1]['item1'] = ids_to_not_remove
 #data = load_data_mind_adressa(config=config)
 # Test single task training for KRED model on Adressa dataset
 single_task_training(config, data)
+# Test on validation data
+test_data = data[-1]
+auc_score, ndcg_score = testing(test_data, config)
