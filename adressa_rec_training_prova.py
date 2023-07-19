@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 import random
 from time import time
-from utils.adressa_util_prova import *
+from utils.adressa_util import *
 import argparse
 from train_test_adressa import *
 
