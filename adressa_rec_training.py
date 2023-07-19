@@ -153,7 +153,7 @@ if os.path.exists(config['data']['valid_news_addressa']) and os.path.exists(conf
 else:
     _, _ = create_train_test_adressa_datasets(config, train_urls=train_news, test_urls=test_news)
 
-ad_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features_mind(config,ad_entity2embedd)
+ad_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features(config,ad_entity2embedd)
 
 ad_entity_embedding = torch.FloatTensor(np.array(ad_entity_embedding))
 relation_embeddings = torch.FloatTensor(np.array(relation_embeddings))
