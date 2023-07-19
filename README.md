@@ -67,7 +67,11 @@ $ python adressa_rec_training.py
 
 Both the preprocessing scripts to transform the datasets used in the extensions are stored in the folder *Preprocessing scripts*.
 
-![](./MainScripts.jpg)  
+<p align="center">
+<img src="./MainScripts.jpg" 
+        alt="Picture" 
+        style="display: block; margin: 0 auto" />
+</p>
 
 Alternatively, it is also possible to open *KRED_notebook.ipynb* inside *Google Colab*, the notebook clones the latest version of this repository and loads the datasets into the proper folders from Google Drive (it is suggested to contact our team to get access to the Drive credentials).
 
@@ -83,7 +87,7 @@ On the Google Colab Notebook is easier to run the Adressa preprocessing since it
 
 
 ## Environment requirements:
-The code has been tested running under Python 3.6.10, with the following packages installed (along with their dependencies): #TODO: check whether colan uses 3.6/7/8
+The code has been tested running under Python 3.6.10, with the following packages installed (along with their dependencies):
 - numpy==1.19.1
 - pytorchtools==0.0.2
 - scikit-learn==0.23.2
