@@ -1,7 +1,34 @@
+"""
+########################################################################################################################
+This file is for the execution of the original KRED: Knowledge-Aware Document Representation for News Recommendations
+    base model execution.
+
+The base model is trained on the MIcrosoft News Dataset (MIND) small version to perform a user2item recommendation task
+
+The macro-steps performed are the following:
+1. Environment setup
+    - Import libraries
+    - Set input data paths
+    - Load config.yaml file
+2. Data loading
+    - Load dataset
+    - Limit validation dataset size for a faster validation phase
+3. Model training and testing
+    - Selection between:
+        * single model training and testing with hyper-parameters specified in config.yaml
+        * grid search on a (small) grid of hyper-parameters (18 models trained, ~8h in total with Google Colab Pro)
+########################################################################################################################
+"""
+
+"""
+1. Environment setup
+    - Import libraries
+    - Set input data paths
+    - Load config.yaml file
+"""
 import os
 import sys
 sys.path.append('')
-import os
 
 import argparse
 from parse_config import ConfigParser
@@ -36,7 +63,6 @@ if not os.path.exists(knowledge_graph_file):
                                os.path.join(data_path, 'kg'), "kg")
 
 
-
 parser = argparse.ArgumentParser(description='KRED')
 
 
@@ -48,27 +74,37 @@ parser.add_argument('-d', '--device', default=None, type=str,
                     help='indices of GPUs to enable (default: all)')
 
 config = ConfigParser.from_args(parser)
-# print(config['data'])
 
+# For debugging purposes:
+# epochs = 1
+# config['trainer']['epochs'] = epochs
+# batch_size = 64
+# config['data_loader']['batch_size'] = batch_size
 
-epochs = 1
-batch_size = 64
 train_type = "single_task"
-task = "user2item" # task should be within: user2item, item2item, vert_classify, pop_predict
-
-config['trainer']['epochs'] = epochs
-config['data_loader']['batch_size'] = batch_size
+task = "user2item"  # task should be within: user2item, item2item, vert_classify, pop_predict
+epochs = config['trainer']['epochs']
 config['trainer']['training_type'] = train_type
 config['trainer']['task'] = task
 config['trainer']['save_period'] = epochs/2
 config['model']['document_embedding_dim'] = 768
+
 # The following parameters define which of the extensions are used, 
-# by setting them to False the original KRED model is executed 
+# by setting them to False the original KRED model is executed
+config['trainer']['movies_adaptation'] = 'False'
+config['trainer']['adressa_adaptation'] = 'False'
+
 if not os.path.isfile(f"{config['data']['sentence_embedding_folder']}/train_news_embeddings.pkl"):
   write_embedding_news("./data/train", config["data"]["sentence_embedding_folder"])
 
 if not os.path.isfile(f"{config['data']['sentence_embedding_folder']}/valid_news_embeddings.pkl"):
   write_embedding_news("./data/valid", config["data"]["sentence_embedding_folder"])
+
+"""
+2. Data loading
+    - Load dataset
+    - Limit validation dataset size for a faster validation phase
+"""
 
 if not os.path.isfile(f"{data_path}/data_mind.pkl"):
   data = load_data_mind(config, config['data']['sentence_embedding_folder'])
@@ -76,10 +112,16 @@ if not os.path.isfile(f"{data_path}/data_mind.pkl"):
 else:
   data = read_pickle(f"{data_path}/data_mind.pkl")
 
-data = limit_user2item_validation_data(data, 10000)  # limit valid set size at valid phase (full set at testing phase)
+data = limit_user2item_validation_data(data, 10000)  # limit valid set size at valid phase due to exec time constraints
 test_data = data[-1]
 print("Data loaded, ready for training")
 
+"""
+3. Model training and testing
+    - Selection between:
+        * single model training and testing with hyper-parameters specified in config.yaml
+        * grid search on a (small) grid of hyper-parameters (18 models trained, ~8h in total with Google Colab Pro)
+"""
 
 ENABLE_GRID_SEARCH = True
 
@@ -107,8 +149,8 @@ if ENABLE_GRID_SEARCH:
                 config["data_loader"]["batch_size"] = b
                 config["optimizer"]["lr"] = lr
 
-                single_task_training(config, data)  # user2item
-                auc_score, ndcg_score = testing_base_model(test_data, config)
+                single_task_training(config, data)  # train a new model with selected hyper-params (user2item base KRED)
+                auc_score, ndcg_score = testing_base_model(test_data, config)   # test model gets performance scores
 
                 res = dict()
                 res['epochs'] = e
