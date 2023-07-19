@@ -31,23 +31,39 @@ def write_pickle(data, fname):
 
 
 def write_pickle_addressa(fname, data):
+    """
+    Creaye a pickle file (fname.pkl) from data
+
+    """
     with open(fname, 'wb') as file:
         for item in data:
             pickle.dump(item, file)
 
 
 def read_pickle(fname):
+    """
+    Open a pickle file (fname.pkl) and extract data
+
+    """
     with open(fname, 'rb') as file:
         data = pickle.load(file)
     return data
 
 
 def build_dictionary_from_list(keys):
+    """
+    Create python dictionary (dictionary) from a list of keys 
+
+    """
     dictionary = {key: index for index, key in enumerate(keys)}
     return dictionary
 
 
 def save_dict_to_txt(dictionary, filename):
+    """
+    Save a python dictionary (dictionary) into filename.txt
+
+    """
     with open(filename, 'w') as file:
         sorted_items = sorted(dictionary.items(), key=lambda x: x[1])  # Sort items by value
         for key, value in sorted_items:
@@ -55,7 +71,11 @@ def save_dict_to_txt(dictionary, filename):
             file.write(line)
 
 
-def addressa_entity_embedding(file_to_embed, output_file_name):
+def addressa_entity_embedding(file_to_embed, output_file_name):  
+    """
+    Create entity embeddings from all entities collected from the dataset Adressa
+
+    """
     # Read csv file with entities wikiid
     df_entities = pd.read_csv(file_to_embed, index_col=False)
     # List of entities
@@ -84,7 +104,11 @@ def addressa_entity_embedding(file_to_embed, output_file_name):
     print('\nEmbedding process finished.')
 
 
-def addressa_relation_embedding(file_to_embed, output_file_name):
+def addressa_relation_embedding(file_to_embed, output_file_name):   
+    """
+    Create relations embeddings from all entities collected from the dataset Adressa
+
+    """
     # Read csv file with entities wikiid
     df_entities = pd.read_csv(file_to_embed, index_col=False)
     # List of entities
@@ -123,7 +147,7 @@ def addressa_relation_embedding(file_to_embed, output_file_name):
 
 def entities_addressa_dict(config):
     """
-    Return all the wikidataIDs of each entities of the dataset 'mind_reader_dataset'
+    Return all the wikidataIDs of each entities of the dataset Adressa
 
     """
 
@@ -151,7 +175,7 @@ def entity_to_id_addressa(entities):
 
 def relation2id_addressa(config):
     """
-    Return a dictionary with the wikidataIDs of each property in the graph of the dataset movies as key and its corresponding id as value
+    Return a dictionary with the wikidataIDs of each property in the graph of the Adressa dataset as key and its corresponding id as value
 
     """
     relations = {}
@@ -171,7 +195,9 @@ def relation2id_addressa(config):
 
 def get_addressa_entities_embedding(config, addressa_entity2embedd):
     """
-    Return a dictionary with the wikidataIDs of the dataset addressa as key and its corresponding index in the entity embedding list as value , and it also return the list with the embeddings for each entity
+    Return a dictionary with the wikidataIDs of the dataset addressa as key and 
+    its corresponding index in the entity embedding list as value , 
+    and it also return the list with the embeddings for each entity
 
     """
     # Creating the list of vector which will contain the list of the entities' embeddings
@@ -199,7 +225,7 @@ def get_addressa_entities_embedding(config, addressa_entity2embedd):
 
 def get_addressa_relations(config):
     """
-    Function to filter only the relations that are in the news dataset
+    Function to filter only the relations that are in the Adressa news dataset
 
     """
 
@@ -215,7 +241,7 @@ def get_addressa_relations(config):
 
 def get_addressa_relations_embeddings(config):
     """
-    Return the embedding of all the relations of the news dataset
+    Return the embedding of all the relations of the Adressa news dataset
 
     """
 
@@ -238,6 +264,10 @@ def get_addressa_relations_embeddings(config):
 
 
 def build_entity_id_dict_from_file(config):
+    """
+    Open entity2id.txt file and create a dictionary
+
+    """
     dictionary = {}
     with open(config['data']['entity2id_adressa'], 'r') as file:
         for line in file:
@@ -248,7 +278,12 @@ def build_entity_id_dict_from_file(config):
     return dictionary
 
 
-def addressa_construct_adj_mind(config, entities_dict, relations_dict):
+def addressa_construct_adj(config, entities_dict, relations_dict):
+    """
+    Construct adjacency matrix between entities starting form KG 
+
+    """
+    
     print('\nConstructing adjacency matrix ...')
     filename = './data/kg_adr_adjacent_matrix.json'
 
@@ -309,61 +344,6 @@ def addressa_construct_adj_mind(config, entities_dict, relations_dict):
 
     return entity_adj, relation_adj
 
-
-def construct_adj_adr(config, entities_dict, relations_dict):
-    print('\nConstructing adjacency matrix ...')
-    filename = './data/kg_adr_adjacent_matrix.json'
-
-    # Check whether the kg dictionary already exists
-    if os.path.exists(filename):
-        print(
-            '\nKnowledge graph has already been analyzed, and the KG dictionary already exists. Skipping the first step in matrix building.')
-        # Reopen the file and load the dictionary
-        with open(filename, 'r') as file:
-            kg = json.load(file)
-    else:
-        with open(config['data']['knowledge_graph_addressa'], 'r', encoding='utf-8') as graph_file_fp:
-            kg = {}
-            for line in tqdm(graph_file_fp):
-                linesplit = line.strip().split('\t')
-                head = linesplit[0]
-                relation = linesplit[1]
-                tail = linesplit[2]
-                if head.strip() in entities_dict and tail.strip() in entities_dict:
-                    if head not in kg:
-                        kg[head] = []
-                    kg[head].append((tail, relation))
-
-                if tail.strip() in entities_dict and head.strip() in entities_dict:
-                    if tail not in kg:
-                        kg[tail] = []
-                    kg[tail].append((head, relation))
-
-        # Save kg dictionary to a file
-        with open(filename, 'w') as file:
-            json.dump(kg, file)
-
-    entity_num = len(entities_dict)
-    entity_adj = [[] for _ in range(entity_num)]
-    relation_adj = [[] for _ in range(entity_num)]
-
-    for key in kg.keys():
-        if key in entities_dict:
-            entity_index = entities_dict[key]
-            for i in range(config['model']['entity_neighbor_num']):
-                if i < len(kg[key]):
-                    tail, relation = kg[key][i]
-                    if tail in entities_dict and relation in relations_dict:
-                        tail_index = entities_dict[tail]
-                        relation_index = relations_dict[relation]
-                        entity_adj[entity_index].append(tail_index)
-                        relation_adj[entity_index].append(relation_index)
-                else:
-                    break
-        else:
-            print(f"Entity {key} not found in entities_dict.")
-
-    return entity_adj, relation_adj
 
 
 def obtain_train_test_adressa(config, train_adressa_behaviour, adressa_behaviours):
@@ -537,129 +517,6 @@ def build_news_addressa_features_mind(config, entity2embedd):
 
     return news_features, 100, 10, 100
 
-
-def build_news_addressa_features_mind_prova(config, entity2embedd):
-    # There are 4 features for each news: position, freq, category, embeddings
-    news_features = {}
-    news_feature_dict = {}
-    embedding_folder = config['data']['sentence_embedding_folder']
-    train_embedding_file = embedding_folder + "train_news_addressa_embeddings.pkl"
-    valid_embedding_file = embedding_folder + "valid_news_addressa_embeddings.pkl"
-    train_sentences_embedding = []
-    valid_sentences_embedding = []
-
-    model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
-
-    with open(config['data']['train_news_addressa'], 'r', encoding='utf-8') as fp_train_news:
-        if os.path.exists(train_embedding_file):
-            train_sentences_embedding = read_pickle(train_embedding_file)
-
-        print('\nExtracting info from news train ...')
-        for i, line in enumerate(tqdm(fp_train_news)):
-            fields = line.strip().split('\t')
-            url = fields[0]
-            try:
-                updated_field = fields[1].replace("'", "\"")
-                entity_info_title = json.loads(updated_field)
-            except json.JSONDecodeError:
-                print(f"Error decoding JSON in train_news_addressa at line {i + 1}: {fields[1]}")
-                continue
-            entity_info_abstract = []
-
-            news_feature_dict[url] = (fields[3], entity_info_title, entity_info_abstract, fields[5], fields[4])
-
-            if embedding_folder is not None:
-                sentence_embedding = model.encode(news_feature_dict[url][0])
-                train_sentences_embedding.append(sentence_embedding)
-
-    with open(config['data']['valid_news_addressa'], 'r', encoding='utf-8') as fp_dev_news:
-        if os.path.exists(valid_embedding_file):
-            valid_sentences_embedding = read_pickle(valid_embedding_file)
-
-        print('\nExtracting info from news dev ...')
-        for i, line in enumerate(tqdm(fp_dev_news)):
-            fields = line.strip().split('\t')
-            url = fields[0]
-            try:
-                updated_field = fields[1].replace("'", "\"")
-                entity_info_title = json.loads(updated_field)
-            except json.JSONDecodeError:
-                print(f"Error decoding JSON in valid_news_addressa at line {i + 1}: {fields[1]}")
-                continue
-            entity_info_abstract = []
-
-            news_feature_dict[url] = (fields[3], entity_info_title, entity_info_abstract, fields[5], fields[4])
-
-            if embedding_folder is not None:
-                sentence_embedding = model.encode(news_feature_dict[url][0])
-                valid_sentences_embedding.append(sentence_embedding)
-
-    # deal with doc feature
-    entity_type_dict = {}
-    entity_type_index = 1
-
-    print('\nBuilding news features ...')
-    for i, news in enumerate(tqdm(news_feature_dict)):
-        sentence_embedding = model.encode(news_feature_dict[news][0])
-
-        news_entity_feature_list = []
-        entity_info_title = news_feature_dict[news][1]
-        news_entity_feature = {}
-
-        for item in entity_info_title:
-            if item['Type'] not in entity_type_dict:
-                entity_type_dict[item['Type']] = entity_type_index
-                entity_type_index = entity_type_index + 1
-            news_entity_feature[item['WikidataId']] = \
-                (item['OccurrenceOffsets'], 1, entity_type_dict[item['Type']])
-
-        for entity in news_entity_feature:
-            if entity in entity2embedd:
-                news_entity_feature_list.append(
-                    [entity2embedd[entity], news_entity_feature[entity][0], news_entity_feature[entity][1],
-                     news_entity_feature[entity][2]]
-                )
-
-        news_entity_feature_list.append([0, 0, 0, 0])
-
-        if len(news_entity_feature_list) > config['model']['news_entity_num']:
-            news_entity_feature_list = news_entity_feature_list[:config['model']['news_entity_num']]
-        else:
-            for _ in range(len(news_entity_feature_list), config['model']['news_entity_num']):
-                news_entity_feature_list.append([0, 0, 0, 0])
-
-        news_feature_list_ins = [[], [], [], [], []]
-
-        for i in range(len(news_entity_feature_list)):
-            for j in range(4):
-                news_feature_list_ins[j].append(news_entity_feature_list[i][j])
-
-        # check embedding length and pad or trunc if needed
-        if len(sentence_embedding) < config['model']['entity_embedding_dim']:
-            padding = [0.0] * (config['model']['entity_embedding_dim'] - len(sentence_embedding))
-            sentence_embedding = np.concatenate((sentence_embedding, padding))
-        elif len(sentence_embedding) > config['model']['entity_embedding_dim']:
-            sentence_embedding = sentence_embedding[:config['model']['entity_embedding_dim']]
-
-        news_feature_list_ins[4] = sentence_embedding
-
-        news_features[news] = news_feature_list_ins
-
-    news_features["N0"] = [[], [], [], [], []]
-
-    for i in range(config['model']['news_entity_num']):
-        for j in range(4):
-            news_features["N0"][j].append(0)
-
-    news_features["N0"][4] = np.zeros(config['model']['document_embedding_dim'])
-
-    if embedding_folder is not None and train_sentences_embedding and not os.path.exists(train_embedding_file):
-        write_pickle_addressa(train_embedding_file, train_sentences_embedding)
-
-    if embedding_folder is not None and valid_sentences_embedding and not os.path.exists(valid_embedding_file):
-        write_pickle_addressa(valid_embedding_file, valid_sentences_embedding)
-
-    return news_features, 100, 10, 100
 
 
 def build_user_history_adressa(config, train_adressa_behaviour, test_adressa_behaviour):
