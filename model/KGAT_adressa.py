@@ -21,6 +21,8 @@ class KGAT(BaseModel):
         self.convolve_layer = nn.Linear(2 * self.config['model']['entity_embedding_dim'],
                                         self.config['model']['entity_embedding_dim'])
 
+
+
     def get_neighbors(self, entities):
         number_of_entities = self.entity_embedding.shape[0]
         print(f'\nNumber of entities: {number_of_entities}')
@@ -60,9 +62,16 @@ class KGAT(BaseModel):
                         neighbor_entities[-1][-1].append(entity_adj_list)
                         neighbor_relations[-1][-1].append(relation_adj_list)
 
-        # Print the shapes of neighbor_entities and neighbor_relations
+        # Print the shapes and lengths of neighbor_entities and neighbor_relations
         print('Neighbor Entities Shape:', torch.tensor(neighbor_entities).shape)
+        for i, entity_batch in enumerate(neighbor_entities):
+            for j, entity in enumerate(entity_batch):
+                print(f'Neighbor Entities Length in Batch {i}, Sequence {j}:', len(entity))
+
         print('Neighbor Relations Shape:', torch.tensor(neighbor_relations).shape)
+        for i, entity_batch in enumerate(neighbor_relations):
+            for j, entity in enumerate(entity_batch):
+                print(f'Neighbor Relations Length in Batch {i}, Sequence {j}:', len(entity))
 
         return neighbor_entities, neighbor_relations
 
