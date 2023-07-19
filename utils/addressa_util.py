@@ -4,7 +4,7 @@ import random
 import numpy as np
 import math
 import sys
-import pandas as pd
+import pandas as pd 
 
 sys.path.append('')
 import pickle
@@ -26,17 +26,39 @@ from sklearn.model_selection import train_test_split
 
 
 def write_pickle(data, fname):
+    """
+    Given an input (data) write a pickle file with name fname
+
+    """
     with open(fname, 'wb') as file:
         pickle.dump(data, file)
 
 
 def read_pickle(fname):
+    """
+    Open fname pickle file and return data contained
+
+    """
     with open(fname, 'rb') as file:
         data = pickle.load(file)
     return data
 
+def build_entity_id_dict(wikiid_list):
+    """
+    Given a list as input returns a dictionary with key (item in the list) and value (increasing numbers)
+
+    """
+    entity_id_dict = {}
+    for i, wikiid in enumerate(wikiid_list):
+        entity_id_dict[wikiid] = i
+    return entity_id_dict
+
 
 def addressa_entity_embedding(file_to_embed, output_file_name):
+    """
+    Return all the vector embeddings of each entities found for Adressa 
+
+    """
     # Read csv file with entities wikiid
     df_entities = pd.read_csv(file_to_embed, index_col=False)
     # List of entities
@@ -66,6 +88,10 @@ def addressa_entity_embedding(file_to_embed, output_file_name):
 
 
 def addressa_relation_embedding(file_to_embed, output_file_name):
+    """
+    Return all the vector embeddings of each relationship found for Adressa entities
+
+    """
     # Read csv file with entities wikiid
     df_entities = pd.read_csv(file_to_embed, index_col=False)
     # List of entities
@@ -104,7 +130,7 @@ def addressa_relation_embedding(file_to_embed, output_file_name):
 
 def entities_addressa(config):
     """
-    Return all the wikidataIDs of each entities of the dataset 'mind_reader_dataset'
+    Return all the wikidataIDs of each entities of the dataset Adressa
 
     """
 
@@ -152,7 +178,9 @@ def relation2id_addressa(config):
 
 def get_addressa_entities_embedding(config, addressa_entity2embedd):
     """
-    Return a dictionary with the wikidataIDs of the dataset addressa as key and its corresponding index in the entity embedding list as value , and it also return the list with the embeddings for each entity
+    Return a dictionary with the wikidataIDs of the dataset Adressa as key and 
+    its corresponding index in the entity embedding list as value ,
+    and it also return the list with the embeddings for each entity
 
     """
     # Creating the list of vector which will contain the list of the entities' embeddings
@@ -180,7 +208,7 @@ def get_addressa_entities_embedding(config, addressa_entity2embedd):
 
 def get_addressa_relations(config):
     """
-    Function to filter only the relations that are in the news dataset
+    Function to filter only the relations that are in the Adressa news dataset
 
     """
 
@@ -196,7 +224,7 @@ def get_addressa_relations(config):
 
 def get_addressa_relations_embeddings(config):
     """
-    Return the embedding of all the relations of the news dataset
+    Return the embedding of all the relations of the Adressa news dataset
 
     """
 
@@ -216,13 +244,6 @@ def get_addressa_relations_embeddings(config):
 
             relation_embedding.append(linesplit)
         return relation_embedding
-
-
-def build_entity_id_dict(wikiid_list):
-    entity_id_dict = {}
-    for i, wikiid in enumerate(wikiid_list):
-        entity_id_dict[wikiid] = i
-    return entity_id_dict
 
 
 def addressa_construct_adj_mind(config, entities_dict, relations_dict):
