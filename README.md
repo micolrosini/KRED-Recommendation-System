@@ -104,7 +104,6 @@ The **.\data\** folder to execute both the extensions (and the base model, if de
 |           wikidata-graph.tsv
 |           
 +---mind_reader_dataset
-|   |   data_preprocessing.py
 |   |   entities.csv
 |   |   entity2label_movies.txt
 |   |   mind_reader_entity_embedding.vec
