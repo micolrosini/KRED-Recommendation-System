@@ -16,7 +16,7 @@ The macro-steps performed are the following:
 3. Model training and testing
     - Selection between:
         * single model training and testing with hyper-parameters specified in config.yaml
-        * grid search on a (small) grid of hyper-parameters (18 models trained, ~8h in total with Google Colab Pro)
+        * grid search on a (small) grid of hyper-parameters (4 models trained, ~10h in total with Google Colab Pro)
 ########################################################################################################################
 """
 
@@ -120,7 +120,7 @@ print("Data loaded, ready for training")
 3. Model training and testing
     - Selection between:
         * single model training and testing with hyper-parameters specified in config.yaml
-        * grid search on a (small) grid of hyper-parameters (18 models trained, ~8h in total with Google Colab Pro)
+        * grid search on a (small) grid of hyper-parameters (4 models trained, ~10h in total with Google Colab Pro)
 """
 
 ENABLE_GRID_SEARCH = True

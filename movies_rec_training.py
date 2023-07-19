@@ -1,7 +1,32 @@
+"""
+########################################################################################################################
+This file is for the execution of the Domain Adaptation to Movies Recommendations extension of the KRED model
+
+The model is trained on the MindReader dataset to perform a user2item recommendation task on movies items
+
+The macro-steps performed are the following:
+1. Environment setup
+    - Import libraries
+    - Load config.yaml file
+2. Data loading
+    - Load dataset
+    - Fix a "missing keys" problem of the dataset
+3. Model training and testing
+    - Selection between:
+        * single model training and testing with hyper-parameters specified in config.yaml
+        * grid search on a (small) grid of hyper-parameters (18 models trained, ~8h in total with Google Colab Pro)
+########################################################################################################################
+"""
+
+"""
+1. Environment setup
+    - Import libraries
+    - Load config.yaml file
+"""
+
 import os
 import sys
 sys.path.append('')
-import os
 from parse_config import ConfigParser
 import argparse
 import ast
@@ -21,8 +46,18 @@ parser.add_argument('-r', '--resume', default=None, type=str,
 parser.add_argument('-d', '--device', default=None, type=str,
                     help='indices of GPUs to enable (default: all)')
 
-config = ConfigParser.from_args(parser) 
+config = ConfigParser.from_args(parser)
+
+# The following parameters define which of the extensions are used,
+#   by setting them to False the original KRED model is executed
 config['trainer']['movies_adaptation'] = 'True'
+config['trainer']['adressa_adaptation'] = 'False'
+
+"""
+2. Data loading
+    - Load dataset
+    - Fix a "missing keys" problem of the dataset
+"""
 
 if not os.path.isfile("./data/mind_reader_dataset/movies.pkl"):
     data = load_movies_data_mind
@@ -36,6 +71,13 @@ for el in data[-1]['item1']:
             ids_to_not_remove.append(el)
 
 data[-1]['item1'] = ids_to_not_remove
+
+"""
+3. Model training and testing
+    - Selection between:
+        * single model training and testing with hyper-parameters specified in config.yaml
+        * grid search on a (small) grid of hyper-parameters (18 models trained, ~8h in total with Google Colab Pro)
+"""
 
 ENABLE_GRID_SEARCH = True
 

@@ -108,6 +108,16 @@ def evaluate(y_pred, truth, test_data, task):
 
 
 def evaluate_base_model(y_pred, truth, test_data, task):
+    """
+    :param y_pred: predicted labels
+    :param truth: ground truth labels
+    :param test_data: test dataset
+    :param task: user2item
+    :return auc_score, ndcg_score: the two scores selected for performance evaluation
+
+    Computes the AUC score and NDCG score
+
+    """
     if task == "user2item":
         score = roc_auc_score(truth, y_pred)
         sess_id = test_data['session_id']
@@ -136,6 +146,16 @@ def evaluate_base_model(y_pred, truth, test_data, task):
 
 
 def evaluate_movies(y_pred, truth, test_data, task):
+    """
+        :param y_pred: predicted labels
+        :param truth: ground truth labels
+        :param test_data: test dataset
+        :param task: user2item
+        :return auc_score, ndcg_score: the two scores selected for performance evaluation
+
+        Computes the AUC score and NDCG score
+
+    """
     if task == "user2item":
         score = roc_auc_score(truth, y_pred)
         sess_id = test_data['session_id']
