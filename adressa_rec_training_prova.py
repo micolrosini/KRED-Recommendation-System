@@ -1,3 +1,29 @@
+"""
+########################################################################################################################
+This file is for the execution of the Data Enrichment to Adressa News extension of the KRED model
+
+The model is trained on the Adressa dataset to perform a user2item recommendation task on norwegian news articles
+
+The macro-steps performed are the following:
+1. Environment setup
+    - Import libraries
+    - Load config.yaml file
+2. Data preparation
+    - Load existing files
+    - Extracting existing enbeddings
+    - Build user history and behaviors
+    - Building adjacency matrix
+    - Fix a "missing keys" problem of the dataset
+3. Model training and testing
+    - Selection between:
+        * single model training and testing with hyper-parameters specified in config.yaml
+########################################################################################################################
+"""
+"""
+1. Environment setup
+    - Import libraries
+    - Load config.yaml file
+"""
 from parse_config import ConfigParser
 import torch
 import os
@@ -31,6 +57,14 @@ relation_file= 'relations_embedding'
 data_path = './data/'
 adj_path = data_path + 'addressa_adj_matrix.txt'
 
+"""
+2. Data preparation
+    - Load existing files
+    - Extracting existing enbeddings
+    - Build user history and behaviors
+    - Building adjacency matrix
+    - Fix a "missing keys" problem of the dataset
+"""
 
 # Creating a dictionary with key the wikidata id and value the corresponding id,
 # the id is a number that goes from 1 to the lenght of "entities"\  \
@@ -41,7 +75,7 @@ else:
     entities_dict = build_entity_id_dict_from_file(config)
     save_dict_to_txt(entities_dict, config['data']['entity2id_adressa'])
 
-#This will be a dictionary with key the wikidata id and value the index in the 'movies_entity_embedding' which corresponds to the relative embedding
+#This will be a dictionary with key the wikidata id and value the index in the 'addressa_entity_embedding' which corresponds to the relative embedding
 ad_entity2embedd = {}
 
 # function to obtain the embeddings vector and a dictionary that teels you the index of the embedding vectors for each wikidata id
@@ -52,6 +86,7 @@ df_relations = pd.read_csv(path_relation, sep='\t', header=None)
 
 # List of relationships (using the second column)
 relations_adr = df_relations.iloc[:, 1].drop_duplicates().tolist()
+
 # Obtaining a dictionary with wikidata id of all the relations as key and the id as values.
 relations_dict = build_dictionary_from_list(relations_adr)
 
@@ -97,9 +132,6 @@ else:
 relation_embeddings =get_addressa_relations_embeddings(config)
 
 entity_adj, relation_adj = addressa_construct_adj_mind(config, ad_entity2embedd, adr_relation2id)
-#entity_adj, relation_adj = construct_adj_adr(config, entities_dict=ad_entity2embedd, relations_dict=adr_relation2id)
-#print(entity_adj)
-#print(relation_adj)
 
 # open behaviours and extract urls
 df_beahviours = pd.read_csv(config["data"]["train_adressa_behaviour"], delimiter='\t', header=None)
@@ -112,6 +144,7 @@ user_history_dict = build_user_history_adressa(config, train_adressa_behaviour, 
 
 train_data, dev_data = get_adressa_user2item_data(config, train_adressa_behaviour=train_adressa_behaviour, test_adressa_behaviour=test_adressa_behaviour)
 
+# Select urls of news "clicked" by users
 train_news = train_data['train_urls']
 test_news = dev_data['dev_urls']
 
@@ -121,7 +154,6 @@ else:
     _, _ = create_train_test_adressa_datasets(config, train_urls=train_news, test_urls=test_news)
 
 ad_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features_mind(config,ad_entity2embedd)
-#ad_features, max_entity_freq, max_entity_pos, max_entity_type = build_news_addressa_features_mind_prova(config,ad_entity2embedd)
 
 ad_entity_embedding = torch.FloatTensor(np.array(ad_entity_embedding))
 relation_embeddings = torch.FloatTensor(np.array(relation_embeddings))
@@ -136,7 +168,12 @@ for el in data[-1]['item1']:
 
 data[-1]['item1'] = ids_to_not_remove
 
-#data = load_data_mind_adressa(config=config)
+"""
+3. Model training and testing
+    - Selection between:
+        * single model training and testing with hyper-parameters specified in config.yaml
+"""
+
 # Test single task training for KRED model on Adressa dataset
 single_task_training(config, data)
 # Test on validation data
