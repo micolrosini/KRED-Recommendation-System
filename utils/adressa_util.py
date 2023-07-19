@@ -389,7 +389,7 @@ def obtain_train_test_adressa(config, train_adressa_behaviour, adressa_behaviour
     return train_news, test_news
 
 
-def build_news_addressa_features_mind(config, entity2embedd):
+def build_news_addressa_features(config, entity2embedd):
     # There are 4 features for each news: position, freq, category, embeddings
     news_features = {}
     news_feature_dict = {}
