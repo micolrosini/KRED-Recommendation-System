@@ -37,7 +37,8 @@ We use [Adressa Norwegian News dataset](https://reclab.idi.ntnu.no/dataset/) for
 ##  Reproducing the experiments:
 Two main options are suggested to run this project: it can either be executed locally or, alternatively, on a Python Notebook on Google Colab.
 
-To run the code locally it is necessary to clone this repository, using the preferred IDE, and subsequently add the required data. The dataset directory must be structured as follows in order for the code of the base model to run properly:
+To run the code locally it is necessary to clone this repository, using the preferred IDE, and subsequently add the required data. The dataset directory must be structured as follows in order for the code of the **base model only** to run properly:
+
 ![](./DataDirectoryStructure.jpg)  
 
 Once fulfilled the aforementioned requirements, the project can be run from an IDE or executing the following command:
@@ -65,7 +66,92 @@ $ python adressa_rec_training.py
 # Remark: The Movies dataset also undergoes various transformations in the preprocessing phase, the preprocessing file is data_movies_preprocessing.py
 ```
 
-Both the preprocessing scripts to transform the datasets used in the extensions are stored in the folder *Preprocessing scripts*.
+The **.\data\** folder to execute both the extensions (and the base model, if desired) has to be structured in the following way:
+```
+.\data\
+|   addressa_adj_matrix.txt
+|   AdressaSMALL.tar
+|   behaviours_adressa.tsv
+|   data_mind.pkl
+|   entities-week.csv
+|   entities_embedding.vec
+|   entity2id_adressa.txt
+|   kg_adr_adjacent_matrix.json
+|   knowledge_graph_addressa.tsv
+|   relations_embedding.vec
+|   week_updated_news_dataset.tsv
+|  
++---adressaLight
+|   \---one_week
+|       \---one_week
+|               20170101
+|               20170102
+|               20170103
+|               20170104
+|               20170105
+|               20170106
+|               20170107
+|               
++---kg
+|   \---kg
+|           description.txt
+|           entity2id.txt
+|           entity2vecd100.vec
+|           label.txt
+|           relation2id.txt
+|           relation2vecd100.vec
+|           triple2id.txt
+|           wikidata-graph.tsv
+|           
++---mind_reader_dataset
+|   |   data_preprocessing.py
+|   |   entities.csv
+|   |   entity2label_movies.txt
+|   |   mind_reader_entity_embedding.vec
+|   |   movies.pkl
+|   |   movieswith_entities.txt
+|   |   neo4j.graphml.xml
+|   |   ratings-2.csv
+|   |   ratings.csv
+|   |   testmovieswith_entities.txt
+|   |   trainmovieswith_entities.txt
+|   |   triple2id_movies.txt
+|   |   triples.csv
+|   |   
+|   \---.ipynb_checkpoints
++---sentence_embedding
+|       train_news_embeddings.pkl
+|       valid_news_embeddings.pkl
+|       
++---train
+|   |   behaviors.tsv
+|   |   entity_embedding.vec
+|   |   news.tsv
+|   |   relation_embedding.vec
+|   |   
+|   +---adr
+|   |       adressa_train_news_dataset.tsv
+|   |       
+|   \---MINDsmall_train
+|           behaviors.tsv
+|           news.tsv
+|           
+\---valid
+    |   behaviors.tsv
+    |   entity_embedding.vec
+    |   news.tsv
+    |   relation_embedding.vec
+    |   
+    +---adr
+    |       adressa_test_news_dataset.tsv
+    |       
+    \---MINDsmall_dev
+            behaviors.tsv
+            news.tsv
+            
+```
+
+The files which not natively provided by the sources of the datasets must be recreated using the preprocessing scripts. The preprocessing scripts to transform the datasets used in the extensions are stored in the folder *Preprocessing scripts*.
 
 <p align="center">
 <img src="./MainScripts.jpg" 
@@ -101,6 +187,7 @@ Two extensions have been explored and developed for this project:
 - Data Enrichment --> Introduction of news articles reading time to better model the user preferences
 
 A detailed description of the experiments and extensions is contained in the *Paper.pdf* report.
+
 
 ## Developers:
 - Matteo Garbarino s265386@studenti.polito.it
