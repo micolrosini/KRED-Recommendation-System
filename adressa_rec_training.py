@@ -117,7 +117,7 @@ else:
 if os.path.exists(adj_path):
     print(f'The file adjacency matrix exists in the folder {data_path}.')
 else:
-    entity_adj, relation_adj = construct_adj_adr(config, ad_entity2embedd, adr_relation2id)
+    entity_adj, relation_adj = addressa_construct_adj(config, ad_entity2embedd, adr_relation2id)
     print('\nSaving adjacency matrix file in: ' + adj_path)
     with open(adj_path, 'w') as file:
         for element in entity_adj:
@@ -131,7 +131,7 @@ else:
 # List of embedding vector for each relation
 relation_embeddings =get_addressa_relations_embeddings(config)
 
-entity_adj, relation_adj = addressa_construct_adj_mind(config, ad_entity2embedd, adr_relation2id)
+entity_adj, relation_adj = addressa_construct_adj(config, ad_entity2embedd, adr_relation2id)
 
 # open behaviours and extract urls
 df_beahviours = pd.read_csv(config["data"]["train_adressa_behaviour"], delimiter='\t', header=None)
