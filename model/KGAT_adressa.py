@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from base.base_model import BaseModel
 
+
 class KGAT(BaseModel):
 
     def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation):
@@ -59,8 +60,6 @@ class KGAT(BaseModel):
                         neighbor_relations[-1][-1].append(relation_adj_list)
 
         return neighbor_entities, neighbor_relations
-
-
 
     def get_entity_embedding(self, neighbor_entities):
         entity_embedding_batch = []
@@ -130,18 +129,18 @@ class KGAT(BaseModel):
                         i.insert(index, 0)
         return entity_ids
 
-  def forward(self, entity_ids):
+    def forward(self, entity_ids):
         entity_ids = self.entity_ids_clearner(entity_ids)
-        
+
         neighbor_entities, neighbor_relations = self.get_neighbors(entity_ids)
-        
+
         entity_embedding_lookup = nn.Embedding.from_pretrained(self.entity_embedding.cuda())
         relation_embedding_lookup = nn.Embedding.from_pretrained(self.relation_embedding.cuda())
-        
+
         # Convert neighbor_entities and neighbor_relations to tensors with appropriate shapes
         neighbor_entities_tensor = torch.tensor(neighbor_entities).cuda()
         neighbor_relations_tensor = torch.tensor(neighbor_relations).cuda()
-        
+
         # Lookup embeddings for neighbor entities and relations
         neighbor_entity_embedding = entity_embedding_lookup(neighbor_entities_tensor)
         neighbor_relation_embedding = relation_embedding_lookup(neighbor_relations_tensor)
