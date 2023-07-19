@@ -2,10 +2,9 @@ import torch
 import torch.nn as nn
 from base.base_model import BaseModel
 
-
 class KGAT(BaseModel):
 
-   def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation):
+    def __init__(self, config, doc_feature_dict, entity_embedding, relation_embedding, adj_entity, adj_relation):
         super(KGAT, self).__init__()
         self.config = config
         self.doc_feature_dict = doc_feature_dict
@@ -60,6 +59,8 @@ class KGAT(BaseModel):
                         neighbor_relations[-1][-1].append(relation_adj_list)
 
         return neighbor_entities, neighbor_relations
+
+
 
     def get_entity_embedding(self, neighbor_entities):
         entity_embedding_batch = []
