@@ -87,7 +87,7 @@ else:
 #This will be a dictionary with key the wikidata id and value the index in the 'addressa_entity_embedding' which corresponds to the relative embedding
 ad_entity2embedd = {}
 
-# function to obtain the embeddings vector and a dictionary that teels you the index of the embedding vectors for each wikidata id
+# function to obtain the embeddings vector and a dictionary that tells you the index of the embedding vectors for each wikidata id
 ad_entity2embedd, ad_entity_embedding = get_addressa_entities_embedding(config, ad_entity2embedd)
 
 # Read the TSV file with relationships
