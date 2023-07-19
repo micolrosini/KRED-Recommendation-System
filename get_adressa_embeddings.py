@@ -65,8 +65,8 @@ def entities2vec(entity_ids: list):
     entity_embeddings = {}
     for entity_id in tqdm(entity_ids):
         entity_embeddings[entity_id] = extract_embeddings(entity_id, model)
-
-    with open(config['data']['addressa_entity_embedding'].spli('.')[0] + '100.vec',
+    embedding_file = './content/KRED-Reccomendation-System/data/adr_entity_embeddings_100.vec'
+    with open(embedding_file,
             'w') as entity_embedding_file:
         for key, values in entity_embeddings.items():
             if values is not None:
@@ -78,6 +78,7 @@ def entities2vec(entity_ids: list):
                 entity_embedding_file.write(str_k_v)
             else:
                 print('key ', key)
+    return embedding_file
 
 
 def get_description(id):
