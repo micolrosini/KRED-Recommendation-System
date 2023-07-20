@@ -25,7 +25,7 @@ This repository does NOT contain:
 ![](./framework.PNG)
 
 KRED is a knowledge enhanced framework which enhance a document embedding with knowledge information for multiple news recommendation tasks. The framework mainly contains two parts: the representation enhancement part(left) and the multi-task training part(right). This model has been used as a starting point for the extensions development as well as the baseline for performance comparisons.
-
+![](./KRED_architecture.png)
 ##  Dataset Description:
 
 We use [MIND dataset](https://msnews.github.io) for the baseline model in this repo (in these experiments we do not use the local news detection task due to MIND dataset missing location information and, more precisely, only the user2item single-task recommendation has been addressed). MIND Small has been selected due to limitations in computational resources.
@@ -184,6 +184,7 @@ The code has been tested running under Python 3.6.10, with the following package
 Two extensions have been explored and developed for this project:
 - Domain Adaptation --> Shifting recommendation domain from online news to movies recommendation
 - Data Enrichment --> Introduction of news articles reading time to better model the user preferences
+<img src="./Entities.jpeg" width="300" alt="Image description">
 
 A detailed description of the experiments and extensions is contained in the *Paper.pdf* report.
 
