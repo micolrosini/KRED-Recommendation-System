@@ -112,16 +112,9 @@ for adr_r in adr_relations:
 
 if os.path.exists(path_entity.split('/')[0] + '/' + path_entity.split('/')[1] + '/' + entity_file + '.vec'):
     print(f'The file {entity_file} exists in the folder {data_path}.')
-else:
-    print(f'The file {entity_file} does not exist in the folder {data_path}.')
-    addressa_entity_embedding(path_entity, 'entities_embedding')
-    print('\nSaving entity embedding file in: ' + path_entity.split('/')[0] + '/' + path_entity.split('/')[1] + '/' + entity_file + '.vec')
 
 if os.path.exists(path_entity.split('/')[0] + '/' + path_entity.split('/')[1] + '/' + relation_file + '.vec'):
     print(f'The file {relation_file} exists in the folder {data_path}.')
-else:
-    addressa_relation_embedding(path_relation, relation_file)
-    print('\nSaving entity embedding file in: '+ path_entity.split('/')[0] + '/' + path_relation.split('/')[1] + '/' + relation_file + '.vec')
 
 if os.path.exists(adj_path):
     print(f'The file adjacency matrix exists in the folder {data_path}.')
