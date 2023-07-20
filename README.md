@@ -192,4 +192,4 @@ A detailed description of the experiments and extensions is contained in the *Pa
 ## Developers:
 - Matteo Garbarino s265386@studenti.polito.it
 - Gaia Sabbatini s291532@studenti.polito.it
-- Micol Rosino micol.rosini@studenti.polito.it
+- Micol Rosini micol.rosini@studenti.polito.it
